@@ -1,0 +1,14 @@
+// embit-gazebo：仿真通信 SDK
+// 封装 Ignition Transport C API，提供 MoonBit 原生话题发布/订阅、服务调用接口。
+// 通过 native-stub 编译 C 桥接代码，FFI 通道仅支持 native 后端。
+
+supported_targets = "native"
+
+import {
+  "embit/embit/embit-core" @core,
+  "moonbitlang/core/encoding/utf8",
+}
+
+options(
+  "native-stub": [ "gazebo_stub.c" ],
+)

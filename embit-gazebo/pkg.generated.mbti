@@ -1,0 +1,58 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "embit/embit/embit-gazebo"
+
+import {
+  "embit/embit/embit-core",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct GazeboClient {
+  node : IgnitionNode
+}
+pub fn GazeboClient::connect(String) -> Self
+pub fn GazeboClient::disconnect(Self) -> Unit
+pub fn GazeboClient::get_gravity_z(Self) -> Double
+pub fn GazeboClient::is_connected(Self) -> Bool
+pub fn GazeboClient::is_paused(Self) -> Bool
+pub fn GazeboClient::model_count(Self) -> Int
+pub fn GazeboClient::pause(Self) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::publish(Self, String, Bytes) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::remove_model(Self, String) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::reset_world(Self) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::service_call(Self, String, Bytes) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::service_call_count(Self) -> Int
+pub fn GazeboClient::set_gravity(Self, Double, Double, Double) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::spawn_model(Self, String) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::step(Self, Int) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::subscribe(Self, String) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::subscription_count(Self) -> Int
+pub fn GazeboClient::topic_count(Self) -> Int
+pub fn GazeboClient::unpause(Self) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::unsubscribe(Self, String) -> Unit raise @embit-core.RobotError
+pub fn GazeboClient::world_control_count(Self) -> Int
+
+pub struct GazeboRobot {
+  client : GazeboClient
+  model_info : @embit-core.RobotModelInfo
+  mut sensor_readings : Array[@embit-core.SensorReading]
+}
+pub fn GazeboRobot::client(Self) -> GazeboClient
+pub fn GazeboRobot::connect(String, @embit-core.RobotModelInfo) -> Self
+pub fn GazeboRobot::disconnect(Self) -> Unit
+pub fn GazeboRobot::execute_actions(Self, Array[@embit-core.ActionCommand]) -> Unit raise @embit-core.RobotError
+pub fn GazeboRobot::from_client(GazeboClient, @embit-core.RobotModelInfo) -> Self
+pub fn GazeboRobot::get_model_info(Self) -> @embit-core.RobotModelInfo
+pub fn GazeboRobot::get_sensor_readings(Self) -> Array[@embit-core.SensorReading]
+pub fn GazeboRobot::is_connected(Self) -> Bool
+pub fn GazeboRobot::update_sensors(Self, Array[@embit-core.SensorReading]) -> Unit
+
+type IgnitionNode
+
+// Type aliases
+
+// Traits
+
