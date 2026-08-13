@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "embit/embit/embit-examples"
+package "toadium/embit/embit-examples"
 
 import {
-  "embit/embit/embit-core",
+  "toadium/embit/embit-core",
 }
 
 // Values

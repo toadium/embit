@@ -32,12 +32,12 @@ Embit 是基于 MoonBit 的通用具身智能机器人全栈开发框架，打�
 ### 安装
 
 ```bash
-moon add embit/embit-core
-moon add embit/embit-gazebo
-moon add embit/embit-ggml
-moon add embit/embit-control
-moon add embit/embit-view
-moon add embit/embit-examples
+moon add toadium/embit/embit-core
+moon add toadium/embit/embit-gazebo
+moon add toadium/embit/embit-ggml
+moon add toadium/embit/embit-control
+moon add toadium/embit/embit-view
+moon add toadium/embit/embit-examples
 ```
 
 ### 最小示例

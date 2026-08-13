@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "embit/embit/embit-gazebo"
+package "toadium/embit/embit-gazebo"
 
 import {
-  "embit/embit/embit-core",
+  "toadium/embit/embit-core",
 }
 
 // Values

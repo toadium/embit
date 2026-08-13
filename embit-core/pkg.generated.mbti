@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "embit/embit/embit-core"
+package "toadium/embit/embit-core"
 
 import {
   "moonbitlang/core/debug",

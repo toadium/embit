@@ -18,7 +18,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/embit/embit.git
+git clone https://github.com/toadium/embit.git
 cd embit
 
 # 验证环境

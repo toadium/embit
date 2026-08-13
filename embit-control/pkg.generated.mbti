@@ -1,10 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "embit/embit/embit-control"
+package "toadium/embit/embit-control"
 
 import {
-  "embit/embit/embit-core",
-  "embit/embit/embit-gazebo",
   "moonbitlang/core/debug",
+  "toadium/embit/embit-core",
+  "toadium/embit/embit-gazebo",
 }
 
 // Values

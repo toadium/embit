@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "embit/embit/embit-view"
+package "toadium/embit/embit-view"
 
 import {
-  "embit/embit/embit-core",
   "moonbitlang/core/debug",
+  "toadium/embit/embit-core",
 }
 
 // Values

@@ -1,13 +1,13 @@
 // Embit — 基于 MoonBit 的通用具身智能机器人全栈开发框架
-// 文档：https://github.com/embit/embit  许可证：Apache-2.0
+// 文档：https://github.com/toadium/embit  许可证：Apache-2.0
 
-name = "embit/embit"
+name = "toadium/embit"
 
 version = "1.0.0"
 
 readme = "README.md"
 
-repository = "https://github.com/embit/embit"
+repository = "https://github.com/toadium/embit"
 
 license = "Apache-2.0"
 

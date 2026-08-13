@@ -1,5 +1,5 @@
 // embit-view：可视化调试面板
 // 基于 Selene 引擎打造实时监控面板，支持状态观测、数据回放、参数在线调优。
 import {
-  "embit/embit/embit-core" @core,
+  "toadium/embit/embit-core" @core,
 }
