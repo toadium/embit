@@ -1,0 +1,209 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "embit/embit/embit-control"
+
+import {
+  "embit/embit/embit-core",
+  "embit/embit/embit-gazebo",
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct CartesianController[IK, FK] {
+  ik_solver : IK
+  fk_solver : FK
+}
+pub fn[IK : IKSolver, FK] CartesianController::dof(Self[IK, FK]) -> Int
+pub fn[IK, FK : FKSolver] CartesianController::end_effector_name(Self[IK, FK]) -> String
+pub fn[IK, FK : FKSolver] CartesianController::get_end_effector_pose(Self[IK, FK], Array[@embit-core.JointState]) -> Pose
+pub fn[IK, FK] CartesianController::move_to(Self[IK, FK], Pose, Pose, Double, Double) -> CartesianTrajectory raise @embit-core.RobotError
+pub fn[IK, FK] CartesianController::new(IK, FK) -> Self[IK, FK]
+pub fn[IK : IKSolver, FK] CartesianController::to_joint_states(Self[IK, FK], CartesianTrajectory) -> Array[Array[@embit-core.JointState]] raise @embit-core.RobotError
+
+pub(all) struct CartesianTrajectory {
+  waypoints : Array[CartesianWaypoint]
+  duration : Double
+} derive(Eq, @debug.Debug)
+pub fn CartesianTrajectory::empty() -> Self
+pub fn CartesianTrajectory::length(Self) -> Int
+
+pub(all) struct CartesianWaypoint {
+  pose : Pose
+  timestamp : Double
+} derive(Eq, @debug.Debug)
+
+pub struct ImpedanceController {
+  stiffness : Double
+  damping : Double
+  mut desired_pos : Double
+  mut desired_vel : Double
+  mut ff_force : Double
+}
+pub fn ImpedanceController::compute(Self, Double, Double) -> Double
+pub fn ImpedanceController::critical_damping(Double, Double) -> Double
+pub fn ImpedanceController::get_desired_pos(Self) -> Double
+pub fn ImpedanceController::get_desired_vel(Self) -> Double
+pub fn ImpedanceController::new(Double, Double) -> Self
+pub fn ImpedanceController::set_feedforward(Self, Double) -> Unit
+pub fn ImpedanceController::set_target(Self, Double, Double) -> Unit
+
+pub struct JointGroup {
+  name : String
+  joint_names : Array[String]
+  positions : Map[String, Double]
+}
+pub fn JointGroup::contains(Self, String) -> Bool
+pub fn JointGroup::get_name(Self) -> String
+pub fn JointGroup::get_position(Self, String) -> Double raise @embit-core.RobotError
+pub fn JointGroup::get_positions(Self) -> Array[(String, Double)]
+pub fn JointGroup::new(String, Array[String]) -> Self
+pub fn JointGroup::reset(Self) -> Unit
+pub fn JointGroup::set_position(Self, String, Double) -> Unit raise @embit-core.RobotError
+pub fn JointGroup::set_positions(Self, Array[(String, Double)]) -> Unit raise @embit-core.RobotError
+pub fn JointGroup::size(Self) -> Int
+
+pub struct JointGroupManager {
+  groups : Map[String, JointGroup]
+}
+pub fn JointGroupManager::add(Self, JointGroup) -> Unit
+pub fn JointGroupManager::contains(Self, String) -> Bool
+pub fn JointGroupManager::get(Self, String) -> JointGroup raise @embit-core.RobotError
+pub fn JointGroupManager::group_names(Self) -> Array[String]
+pub fn JointGroupManager::new() -> Self
+pub fn JointGroupManager::size(Self) -> Int
+
+pub struct MotionController {
+  model : @embit-core.RobotModel
+  estimator : StateEstimator
+  mut sim : @embit-gazebo.GazeboClient?
+}
+pub fn MotionController::attach_simulation(Self, @embit-gazebo.GazeboClient) -> Unit
+pub fn MotionController::check_safety(Self, Array[@embit-core.ActionCommand]) -> Unit raise @embit-core.RobotError
+pub fn MotionController::compute_trajectory(Self, Array[(String, Double)], Array[(String, Double)], TrajectoryConstraints) -> Trajectory raise @embit-core.RobotError
+pub fn MotionController::compute_trajectory_cubic(Self, Array[(String, Double)], Array[(String, Double)], TrajectoryConstraints) -> Trajectory raise @embit-core.RobotError
+pub fn MotionController::compute_trajectory_quintic(Self, Array[(String, Double)], Array[(String, Double)], TrajectoryConstraints) -> Trajectory raise @embit-core.RobotError
+pub fn[T : @embit-core.Robot] MotionController::execute_trajectory(Self, Trajectory, T) -> Unit raise @embit-core.RobotError
+pub fn MotionController::get_model(Self) -> @embit-core.RobotModel
+pub fn MotionController::get_state(Self) -> Array[@embit-core.JointState]
+pub fn MotionController::is_sim_attached(Self) -> Bool
+pub fn MotionController::new(@embit-core.RobotModel) -> Self
+pub fn MotionController::update_state(Self, Array[@embit-core.SensorReading]) -> Unit
+
+pub struct PIDController {
+  kp : Double
+  ki : Double
+  kd : Double
+  mut integral : Double
+  mut prev_error : Double
+  mut prev_measurement : Double
+  mut output_min : Double?
+  mut output_max : Double?
+  mut first_update : Bool
+}
+pub fn PIDController::get_error(Self) -> Double
+pub fn PIDController::get_integral(Self) -> Double
+pub fn PIDController::get_kd(Self) -> Double
+pub fn PIDController::get_ki(Self) -> Double
+pub fn PIDController::get_kp(Self) -> Double
+pub fn PIDController::new(Double, Double, Double) -> Self
+pub fn PIDController::reset(Self) -> Unit
+pub fn PIDController::set_output_limits(Self, Double, Double) -> Unit
+pub fn PIDController::update(Self, Double, Double, Double) -> Double
+
+pub(all) struct Pose {
+  position : (Double, Double, Double)
+  orientation : (Double, Double, Double)
+} derive(Eq, @debug.Debug)
+pub fn Pose::new(Double, Double, Double, Double, Double, Double) -> Self
+
+pub struct SensorFusion {
+  alpha : Double
+  mut orientation : Double
+  mut velocity : Double
+  mut bias : Double
+  mut update_count : Int
+}
+pub fn SensorFusion::calibrate_bias(Self, Double, Double) -> Unit
+pub fn SensorFusion::default() -> Self
+pub fn SensorFusion::estimate_velocity(Double, Double, Double) -> Double
+pub fn SensorFusion::get_bias(Self) -> Double
+pub fn SensorFusion::get_orientation(Self) -> Double
+pub fn SensorFusion::get_velocity(Self) -> Double
+pub fn SensorFusion::lowpass_filter(Double, Double, Double, Double) -> Double
+pub fn SensorFusion::new(Double) -> Self
+pub fn SensorFusion::reset(Self) -> Unit
+pub fn SensorFusion::update(Self, Double, Double, Double) -> Unit
+pub fn SensorFusion::update_count(Self) -> Int
+
+pub struct SimpleCartesianController {
+  inner : CartesianController[SimpleIKSolver, SimpleFKSolver]
+}
+pub fn SimpleCartesianController::dof(Self) -> Int
+pub fn SimpleCartesianController::end_effector_name(Self) -> String
+pub fn SimpleCartesianController::get_end_effector_pose(Self, Array[@embit-core.JointState]) -> Pose
+pub fn SimpleCartesianController::move_to(Self, Pose, Pose, Double, Double) -> CartesianTrajectory raise @embit-core.RobotError
+pub fn SimpleCartesianController::new(Int, String) -> Self
+pub fn SimpleCartesianController::to_joint_states(Self, CartesianTrajectory) -> Array[Array[@embit-core.JointState]] raise @embit-core.RobotError
+
+pub struct SimpleFKSolver {
+  ee_name : String
+}
+pub fn SimpleFKSolver::end_effector(Self) -> String
+pub fn SimpleFKSolver::new(String) -> Self
+pub fn SimpleFKSolver::solve_fk(Self, Array[@embit-core.JointState]) -> Pose
+
+pub struct SimpleIKSolver {
+  dof_value : Int
+}
+pub fn SimpleIKSolver::dof(Self) -> Int
+pub fn SimpleIKSolver::new(Int) -> Self
+pub fn SimpleIKSolver::solve_ik(Self, Pose) -> Array[@embit-core.JointState] raise @embit-core.RobotError
+pub fn SimpleIKSolver::solve_ik_with_seed(Self, Pose, Array[@embit-core.JointState]) -> Array[@embit-core.JointState] raise @embit-core.RobotError
+
+pub struct StateEstimator {
+  mut current_state : Array[@embit-core.JointState]
+  mut last_update_time : Double
+}
+pub fn StateEstimator::get_state(Self) -> Array[@embit-core.JointState]
+pub fn StateEstimator::last_update(Self) -> Double
+pub fn StateEstimator::new() -> Self
+pub fn StateEstimator::set_state(Self, Array[@embit-core.JointState]) -> Unit
+pub fn StateEstimator::update(Self, Array[@embit-core.SensorReading]) -> Unit
+
+pub(all) struct Trajectory {
+  waypoints : Array[Waypoint]
+  duration : Double
+} derive(Eq, @debug.Debug)
+pub fn Trajectory::blend(Self, Self, Double) -> Self raise @embit-core.RobotError
+pub fn Trajectory::empty() -> Self
+pub fn Trajectory::length(Self) -> Int
+pub fn Trajectory::to_commands(Self) -> Array[@embit-core.ActionCommand]
+
+pub(all) struct TrajectoryConstraints {
+  max_velocity : Double
+  max_acceleration : Double
+  time_step : Double
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Waypoint {
+  positions : Array[(String, Double)]
+  timestamp : Double
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+pub(open) trait FKSolver {
+  fn solve_fk(Self, Array[@embit-core.JointState]) -> Pose
+  fn end_effector(Self) -> String
+}
+
+pub(open) trait IKSolver {
+  fn solve_ik(Self, Pose) -> Array[@embit-core.JointState] raise @embit-core.RobotError
+  fn solve_ik_with_seed(Self, Pose, Array[@embit-core.JointState]) -> Array[@embit-core.JointState] raise @embit-core.RobotError
+  fn dof(Self) -> Int
+}
+

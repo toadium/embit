@@ -1,0 +1,11 @@
+// embit-control：运动控制框架
+// 内置机器人抽象层、运动学解算、传感器抽象与安全联锁模块。
+// 依赖 embit-gazebo（native-only），故本包仅支持 native 后端。
+
+supported_targets = "native"
+
+import {
+  "embit/embit/embit-core" @core,
+  "embit/embit/embit-gazebo" @gazebo,
+  "moonbitlang/core/math",
+}
