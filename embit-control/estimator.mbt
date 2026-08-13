@@ -60,11 +60,10 @@ pub fn StateEstimator::update(
   readings : Array[@core.SensorReading],
 ) -> Unit {
   if readings.length() > 0 {
-    let mut max_ts = 0.0
-    for r in readings {
-      if r.timestamp > max_ts {
-        max_ts = r.timestamp
-      }
+    let max_ts = for r in readings; ts = 0.0 {
+      continue if r.timestamp > ts { r.timestamp } else { ts }
+    } nobreak {
+      ts
     }
     self.last_update_time = max_ts
   }

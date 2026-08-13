@@ -145,9 +145,10 @@ pub fn DataSeries::mean(self : DataSeries) -> Double? {
   if self.data.length() == 0 {
     None
   } else {
-    let mut sum = 0.0
-    for dp in self.data {
-      sum = sum + dp.value
+    let sum = for dp in self.data; s = 0.0 {
+      continue s + dp.value
+    } nobreak {
+      s
     }
     Some(sum / self.data.length().to_double())
   }

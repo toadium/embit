@@ -257,14 +257,12 @@ fn damped_least_squares(
   for i in 0..<m {
     let row : Array[Double] = []
     for j in 0..<m {
-      let mut sum = 0.0
-      for k in 0..<n {
-        sum += jacobian[k][i] * jacobian[k][j]
+      let sum = for k in 0..<n; s = 0.0 {
+        continue s + jacobian[k][i] * jacobian[k][j]
+      } nobreak {
+        s
       }
-      if i == j {
-        sum += lambda_sq
-      }
-      row.push(sum)
+      row.push(if i == j { sum + lambda_sq } else { sum })
     }
     a.push(row)
   }
@@ -273,9 +271,10 @@ fn damped_least_squares(
   // 3. δq = J^T · x
   let dq : Array[Double] = []
   for k in 0..<n {
-    let mut sum = 0.0
-    for i in 0..<m {
-      sum += jacobian[k][i] * x[i]
+    let sum = for i in 0..<m; s = 0.0 {
+      continue s + jacobian[k][i] * x[i]
+    } nobreak {
+      s
     }
     dq.push(sum)
   }

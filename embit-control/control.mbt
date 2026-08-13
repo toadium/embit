@@ -28,6 +28,36 @@ pub fn MotionController::attach_simulation(
 }
 
 ///|
+/// 计算起始与目标关节位置间的最大位移。
+fn max_joint_displacement(
+  start : Array[(String, Double)],
+  goal : Array[(String, Double)],
+) -> Double {
+  for i in 0..<start.length(); max_disp = 0.0 {
+    let (_, start_pos) = start[i]
+    let (_, goal_pos) = goal[i]
+    let disp = (goal_pos - start_pos).abs()
+    continue if disp > max_disp { disp } else { max_disp }
+  } nobreak {
+    max_disp
+  }
+}
+
+///|
+/// 根据速度约束计算轨迹时长。
+fn compute_duration(
+  max_displacement : Double,
+  velocity_factor : Double,
+  constraints : TrajectoryConstraints,
+) -> Double {
+  if constraints.max_velocity > 0.0 {
+    velocity_factor * max_displacement / constraints.max_velocity
+  } else {
+    constraints.time_step
+  }
+}
+
+///|
 /// 规划轨迹：从起始关节位置到目标关节位置的线性插值。
 ///
 /// `start` / `goal` 为关节名到角度的映射，
@@ -47,22 +77,9 @@ pub fn MotionController::compute_trajectory(
     raise SafetyLimitViolation("start and goal must have same number of joints")
   }
   // 计算最大关节位移与所需时间
-  let mut max_displacement = 0.0
-  for i in 0..<start.length() {
-    let (_, start_pos) = start[i]
-    let (_, goal_pos) = goal[i]
-    let disp = (goal_pos - start_pos).abs()
-    if disp > max_displacement {
-      max_displacement = disp
-    }
-  }
+  let max_displacement = max_joint_displacement(start, goal)
   // 速度约束下的最短时间
-  let mut duration = 0.0
-  if constraints.max_velocity > 0.0 {
-    duration = max_displacement / constraints.max_velocity
-  } else {
-    duration = constraints.time_step
-  }
+  let duration = compute_duration(max_displacement, 1.0, constraints)
   // 生成轨迹点
   let waypoints : Array[Waypoint] = []
   let steps = (duration / constraints.time_step).ceil().to_int()
@@ -122,22 +139,9 @@ pub fn MotionController::compute_trajectory_cubic(
     raise SafetyLimitViolation("start and goal must have same number of joints")
   }
   // 计算最大关节位移与所需时间
-  let mut max_displacement = 0.0
-  for i in 0..<start.length() {
-    let (_, start_pos) = start[i]
-    let (_, goal_pos) = goal[i]
-    let disp = (goal_pos - start_pos).abs()
-    if disp > max_displacement {
-      max_displacement = disp
-    }
-  }
+  let max_displacement = max_joint_displacement(start, goal)
   // 速度约束下的最短时间（三次多项式峰值速度 = 1.5 * Δ / T）
-  let mut duration = 0.0
-  if constraints.max_velocity > 0.0 {
-    duration = 1.5 * max_displacement / constraints.max_velocity
-  } else {
-    duration = constraints.time_step
-  }
+  let duration = compute_duration(max_displacement, 1.5, constraints)
   // 生成轨迹点
   let waypoints : Array[Waypoint] = []
   let steps = (duration / constraints.time_step).ceil().to_int()
@@ -191,22 +195,9 @@ pub fn MotionController::compute_trajectory_quintic(
     raise SafetyLimitViolation("start and goal must have same number of joints")
   }
   // 计算最大关节位移与所需时间
-  let mut max_displacement = 0.0
-  for i in 0..<start.length() {
-    let (_, start_pos) = start[i]
-    let (_, goal_pos) = goal[i]
-    let disp = (goal_pos - start_pos).abs()
-    if disp > max_displacement {
-      max_displacement = disp
-    }
-  }
+  let max_displacement = max_joint_displacement(start, goal)
   // 速度约束下的最短时间（五次多项式峰值速度 = 15Δ/(8T)）
-  let mut duration = 0.0
-  if constraints.max_velocity > 0.0 {
-    duration = 1.875 * max_displacement / constraints.max_velocity
-  } else {
-    duration = constraints.time_step
-  }
+  let duration = compute_duration(max_displacement, 1.875, constraints)
   // 生成轨迹点
   let waypoints : Array[Waypoint] = []
   let steps = (duration / constraints.time_step).ceil().to_int()
@@ -319,8 +310,5 @@ pub fn MotionController::get_model(self : MotionController) -> @core.RobotModel 
 ///|
 /// 查询是否已绑定仿真客户端。
 pub fn MotionController::is_sim_attached(self : MotionController) -> Bool {
-  match self.sim {
-    Some(_) => true
-    None => false
-  }
+  self.sim is Some(_)
 }

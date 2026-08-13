@@ -270,3 +270,4 @@ pub(open) trait IKSolver {
   fn solve_ik_with_seed(Self, Pose, Array[@embit-core.JointState]) -> Array[@embit-core.JointState] raise @embit-core.RobotError
   fn dof(Self) -> Int
 }
+
