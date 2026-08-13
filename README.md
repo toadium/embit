@@ -23,11 +23,10 @@ Embit 是基于 MoonBit 的通用具身智能机器人全栈开发框架，打�
 
 ### 环境要求
 
-- MoonBit 工具链 >= 0.10.0
-- Ignition Gazebo Fortress / Harmonic
-- CMake >= 3.20（FFI 编译必需）
-- Git LFS（模型文件下载必需）
-- （可选）支持 CUDA 的 GPU 设备
+- MoonBit 工具链 >= 0.1.20260713（`preferred_target = "native"`）
+- C 编译器（FFI native-stub 编译必需，Windows 下随 MoonBit 附带 TCC）
+- Ignition Gazebo Fortress / Harmonic（仿真模式）
+- （可选）支持 CUDA / Metal 的 GPU 设备
 
 ### 安装
 
@@ -43,19 +42,48 @@ moon add embit/embit-examples
 ### 最小示例
 
 ```moonbit
-fn main() {
-  let robot = GazeboRobot::connect("t800")?
-  let model = VlaModel::load("models/smolvla-7b-q4.gguf")?
-  let image = robot.get_camera_image()
-  let command = "走到桌子旁边拿起水杯"
-  let actions = model.infer(image, command)
-  robot.execute_actions(actions)
+/// 人形机器人行走 Demo：仿真 → VLA 推理 → 轨迹规划 → 执行 → 监控
+fn main() -> Unit raise @core.RobotError {
+  // 1. 连接仿真环境
+  let sim = @gazebo.GazeboClient::connect("localhost:9000")
+  // 2. 加载 VLA 模型（.gguf 格式）
+  let model = @ggml.VlaModel::load("models/smolvla-7b-q4.gguf")
+  // 3. VLA 推理：图像 + 语言指令 → 动作序列
+  let _ = model.infer(b"camera_image", "walk forward 2 meters")
+  // 4. 构建运动控制器并规划轨迹
+  let ctrl = @control.MotionController::new(robot_model)
+  let traj = ctrl.compute_trajectory(start, goal, constraints)
+  // 5. 发布轨迹到仿真
+  for wp in traj.waypoints {
+    sim.publish("/joint_commands", b"waypoint")
+  }
+  // 6. 清理
+  model.free()
+  sim.disconnect()
+}
+```
+
+也可直接调用内置 Demo：
+
+```moonbit
+fn main() -> Unit raise @core.RobotError {
+  @examples.humanoid_walk()           // 人形行走
+  @examples.quadruped_avoid()         // 四足避障
+  @examples.arm_grasp()               // 机械臂抓取
+  @examples.vla_pipeline_demo()       // VLA 推理管线
+  @examples.impedance_control_demo()  // 阻抗控制
+  @examples.sensor_fusion_demo()      // 传感器融合
+  @examples.batch_inference_demo()    // 批量推理
+  @examples.multi_robot_scene_demo()  // 多机型场景管理
+  @examples.cartesian_control_demo()  // 笛卡尔空间控制
+  @examples.full_stack_demo()         // 全栈综合 Demo
 }
 ```
 
 ## 文档链接
 
 - [技术文档（完整架构与设计）](./docs/02-技术文档.md)
+- [性能基准报告](./docs/04-性能基准报告.md)
 - [项目申报书](./docs/01-项目申报书.md)
 - [品牌故事与命名体系](./docs/03-品牌故事.md)
 
@@ -63,33 +91,26 @@ fn main() {
 
 ```
 embit/
-├── embit-core/          # 核心基础库：通用类型、工具、抽象接口
-├── embit-gazebo/        # 仿真通信SDK：Ignition Transport FFI 绑定
-├── embit-ggml/          # 全尺度VLA推理SDK：ggml/vla.cpp 封装
-├── embit-control/       # 运动控制框架：机器人抽象层、运动学解算
-├── embit-view/          # 可视化调试面板：基于 Selene 的实时监控工具
-├── embit-examples/      # 示例工程集：人形/四足/机械臂 Demo
+├── embit-core/          # 核心基础库：RobotError / JointState / RobotModel / Robot trait / RobotBuilder
+├── embit-gazebo/        # 仿真通信 SDK：GazeboClient + GazeboRobot + 世界控制 + 场景管理1
+├── embit-ggml/          # VLA 推理 SDK：VlaModel + Tensor + Tokenizer + Backend
+├── embit-control/       # 运动控制：轨迹规划 + IK/FK + PID + 阻抗 + 笛卡尔控制 + 关节组
+├── embit-view/          # 可视化面板：Widget / 录制回放 / 实时监控 / DataSeries
+├── embit-examples/      # 示例工程：11 个 Demo（人形/四足/机械臂/VLA/阻抗/融合/批量/多机型/笛卡尔/全栈）
 ├── docs/                # 项目文档
 │   ├── 01-项目申报书.md
 │   ├── 02-技术文档.md
-│   └── 03-品牌故事.md
-├── models/              # VLA 模型文件（.gguf）
+│   ├── 03-品牌故事.md
+│   └── 04-性能基准报告.md
+├── moon.mod             # 模块元数据（embit/embit v1.0.0, native target）
+├── CONTRIBUTING.md      # 贡献指南
+├── .github/             # CI/CD + Issue/PR 模板
 └── LICENSE
 ```
 
-## 开发路线图
-
-| 阶段 | 时间 | 里程碑 |
-|------|------|--------|
-| Phase 1 | 第1个月 | 完成 Ignition Transport 与 ggml 基础 FFI 绑定 |
-| Phase 2 | 第2-3个月 | 发布 embit-gazebo、embit-ggml 首个稳定版本 |
-| Phase 3 | 第4个月 | 完成框架整体联调，适配人形/四足/机械臂三类标准 URDF |
-| Phase 4 | 第5个月 | 完成性能验证（延迟基准测试、抖动测量） |
-| Phase 5 | 第6个月 | v1.0 正式版发布，社区开源共建体系搭建 |
-
 ## 贡献指南
 
-我们欢迎任何形式的贡献：
+详见 [CONTRIBUTING.md](CONTRIBUTING.md)。简要流程：
 
 1. Fork 本仓库
 2. 创建特性分支（`git checkout -b feature/xxx`）
