@@ -1,0 +1,38 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "embit/embit/embit-examples"
+
+import {
+  "embit/embit/embit-core",
+}
+
+// Values
+pub fn arm_grasp() -> Unit raise @embit-core.RobotError
+
+pub fn batch_inference_demo() -> Unit raise @embit-core.RobotError
+
+pub fn cartesian_control_demo() -> Unit raise @embit-core.RobotError
+
+pub fn demo_skeleton() -> Unit
+
+pub fn full_stack_demo() -> Unit raise @embit-core.RobotError
+
+pub fn humanoid_walk() -> Unit raise @embit-core.RobotError
+
+pub fn impedance_control_demo() -> Unit raise @embit-core.RobotError
+
+pub fn multi_robot_scene_demo() -> Unit raise @embit-core.RobotError
+
+pub fn quadruped_avoid() -> Unit raise @embit-core.RobotError
+
+pub fn sensor_fusion_demo() -> Unit
+
+pub fn vla_pipeline_demo() -> Unit raise @embit-core.RobotError
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

@@ -1,0 +1,14 @@
+// embit-examples：示例工程集
+// 提供人形行走、四足避障、机械臂抓取三类典型具身任务 Demo。
+// 依赖 embit-gazebo / embit-ggml（native-only），故本包仅支持 native 后端。
+
+supported_targets = "native"
+
+import {
+  "embit/embit/embit-core" @core,
+  "embit/embit/embit-gazebo" @gazebo,
+  "embit/embit/embit-ggml" @ggml,
+  "embit/embit/embit-control" @control,
+  "embit/embit/embit-view" @view,
+  "moonbitlang/core/math",
+}
