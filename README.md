@@ -2,7 +2,7 @@
 
 > 轻量内核，全栈具身 —— 基于 MoonBit 的下一代通用具身机器人开发框架
 
-[![License](https://img.shields.io/badge/license-Apache--2.0-green)](#许可证)
+[![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 
 ## 项目简介
 
