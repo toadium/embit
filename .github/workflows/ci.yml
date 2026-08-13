@@ -65,4 +65,8 @@ jobs:
       - name: Info check
         run: |
           moon info
+          # Normalize trailing blank lines (platform difference: Windows adds, Linux doesn't)
+          for f in $(find . -name "*.mbti" -not -path "./_build/*"); do
+            sed -i -e :a -e '/^\n*$/{$d;N;ba}' "$f"
+          done
           git diff --exit-code
