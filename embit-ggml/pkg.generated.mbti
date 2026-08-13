@@ -1,0 +1,100 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "embit/embit/embit-ggml"
+
+import {
+  "embit/embit/embit-core",
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) enum Backend {
+  Cpu
+  Cuda
+  Metal
+} derive(Eq, @debug.Debug)
+
+pub(all) enum DType {
+  F32
+  F16
+  I32
+  I8
+} derive(Eq, @debug.Debug)
+
+type GgmlContext
+
+pub(all) struct InferConfig {
+  temperature : Double
+  top_k : Int
+  top_p : Double
+  max_tokens : Int
+} derive(Eq, @debug.Debug)
+pub fn InferConfig::default() -> Self
+pub fn InferConfig::new(Double, Int, Double, Int) -> Self
+
+pub(all) struct ModelInfo {
+  context_size : Int
+  param_count : Int
+  quant_type : QuantType
+  backend : Backend
+  is_loaded : Bool
+} derive(Eq, @debug.Debug)
+
+pub(all) enum QuantType {
+  Fp16
+  Q8
+  Q4
+  Q2
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Tensor {
+  shape : Array[Int]
+  data : Array[Double]
+} derive(Eq, @debug.Debug)
+pub fn Tensor::add(Self, Self) -> Self raise @embit-core.RobotError
+pub fn Tensor::new(Array[Int], Array[Double]) -> Self raise @embit-core.RobotError
+pub fn Tensor::rank(Self) -> Int
+pub fn Tensor::scalar(Double) -> Self
+pub fn Tensor::scale(Self, Double) -> Self
+pub fn Tensor::shape_size(Array[Int]) -> Int
+pub fn Tensor::size(Self) -> Int
+pub fn Tensor::to_scalar(Self) -> Double raise @embit-core.RobotError
+pub fn Tensor::vector(Array[Double]) -> Self
+
+pub struct Tokenizer {
+  vocab_size : Int
+  mut encode_count : Int
+}
+pub fn Tokenizer::count_tokens(Self, String) -> Int
+pub fn Tokenizer::decode(Self, Array[Int]) -> String
+pub fn Tokenizer::default() -> Self
+pub fn Tokenizer::encode(Self, String) -> Array[Int] raise @embit-core.RobotError
+pub fn Tokenizer::encode_count(Self) -> Int
+pub fn Tokenizer::estimate_context_usage(Self, String, Int) -> Int
+pub fn Tokenizer::get_vocab_size(Self) -> Int
+pub fn Tokenizer::new(Int) -> Self
+
+pub struct VlaModel {
+  ctx : GgmlContext
+  model_path : String
+}
+pub fn VlaModel::batch_infer(Self, Array[(Bytes, String)]) -> Array[Array[@embit-core.ActionCommand]] raise @embit-core.RobotError
+pub fn VlaModel::batch_infer_with_config(Self, Array[(Bytes, String)], InferConfig) -> Array[Array[@embit-core.ActionCommand]] raise @embit-core.RobotError
+pub fn VlaModel::free(Self) -> Unit
+pub fn VlaModel::get_backend(Self) -> Backend
+pub fn VlaModel::get_model_info(Self) -> ModelInfo
+pub fn VlaModel::infer(Self, Bytes, String) -> Array[@embit-core.ActionCommand] raise @embit-core.RobotError
+pub fn VlaModel::infer_count(Self) -> Int
+pub fn VlaModel::infer_with_config(Self, Bytes, String, InferConfig) -> Array[@embit-core.ActionCommand] raise @embit-core.RobotError
+pub fn VlaModel::is_loaded(Self) -> Bool
+pub fn VlaModel::load(String) -> Self
+pub fn VlaModel::set_backend(Self, Backend) -> Unit raise @embit-core.RobotError
+pub fn VlaModel::supported_backends() -> Array[Backend]
+
+// Type aliases
+
+// Traits
+
