@@ -35,6 +35,39 @@ pub(all) struct CartesianWaypoint {
   timestamp : Double
 } derive(Eq, @debug.Debug)
 
+pub(all) struct DHParam {
+  a : Double
+  alpha : Double
+  d : Double
+  theta : Double
+  revolute : Bool
+  name : String
+}
+pub fn DHParam::prismatic(String, Double, Double, Double, Double) -> Self
+pub fn DHParam::revolute(String, Double, Double, Double, Double) -> Self
+
+pub struct DhFKSolver {
+  params : Array[DHParam]
+  ee_name : String
+}
+pub fn DhFKSolver::arm_6dof(ee_name? : String) -> Self
+pub fn DhFKSolver::end_effector(Self) -> String
+pub fn DhFKSolver::fk(Self, Array[Double]) -> @embit-core.Transform raise @embit-core.RobotError
+pub fn DhFKSolver::new(Array[DHParam], String) -> Self
+pub fn DhFKSolver::solve_fk(Self, Array[@embit-core.JointState]) -> Pose
+
+pub struct DhIKSolver {
+  fk_solver : DhFKSolver
+  damping : Double
+  max_iter : Int
+  tolerance : Double
+}
+pub fn DhIKSolver::dof(Self) -> Int
+pub fn DhIKSolver::new(DhFKSolver, damping? : Double, max_iter? : Int, tolerance? : Double) -> Self
+pub fn DhIKSolver::solve(Self, Pose, Array[Double]) -> Array[Double] raise @embit-core.RobotError
+pub fn DhIKSolver::solve_ik(Self, Pose) -> Array[@embit-core.JointState] raise @embit-core.RobotError
+pub fn DhIKSolver::solve_ik_with_seed(Self, Pose, Array[@embit-core.JointState]) -> Array[@embit-core.JointState] raise @embit-core.RobotError
+
 pub struct ImpedanceController {
   stiffness : Double
   damping : Double
@@ -74,6 +107,27 @@ pub fn JointGroupManager::get(Self, String) -> JointGroup raise @embit-core.Robo
 pub fn JointGroupManager::group_names(Self) -> Array[String]
 pub fn JointGroupManager::new() -> Self
 pub fn JointGroupManager::size(Self) -> Int
+
+pub struct KalmanFilter1D {
+  mut pos : Double
+  mut vel : Double
+  mut p00 : Double
+  mut p01 : Double
+  mut p10 : Double
+  mut p11 : Double
+  q_pos : Double
+  q_vel : Double
+  r : Double
+}
+pub fn KalmanFilter1D::get_pos(Self) -> Double
+pub fn KalmanFilter1D::get_pos_uncertainty(Self) -> Double
+pub fn KalmanFilter1D::get_vel(Self) -> Double
+pub fn KalmanFilter1D::new(Double, Double, Double) -> Self
+pub fn KalmanFilter1D::predict(Self, Double) -> Unit
+pub fn KalmanFilter1D::reset(Self) -> Unit
+pub fn KalmanFilter1D::step(Self, Double, Double) -> Unit
+pub fn KalmanFilter1D::update(Self, Double) -> Unit
+pub fn KalmanFilter1D::with_initial(Double, Double, Double, Double, Double) -> Self
 
 pub struct MotionController {
   model : @embit-core.RobotModel
@@ -166,12 +220,22 @@ pub fn SimpleIKSolver::solve_ik_with_seed(Self, Pose, Array[@embit-core.JointSta
 pub struct StateEstimator {
   mut current_state : Array[@embit-core.JointState]
   mut last_update_time : Double
+  use_kalman : Bool
+  filters : Map[String, KalmanFilter1D]
+  q_pos : Double
+  q_vel : Double
+  r : Double
 }
+pub fn StateEstimator::get_filter(Self, String) -> KalmanFilter1D?
 pub fn StateEstimator::get_state(Self) -> Array[@embit-core.JointState]
+pub fn StateEstimator::is_kalman_enabled(Self) -> Bool
 pub fn StateEstimator::last_update(Self) -> Double
 pub fn StateEstimator::new() -> Self
+pub fn StateEstimator::new_kalman(Double, Double, Double) -> Self
+pub fn StateEstimator::reset(Self) -> Unit
 pub fn StateEstimator::set_state(Self, Array[@embit-core.JointState]) -> Unit
 pub fn StateEstimator::update(Self, Array[@embit-core.SensorReading]) -> Unit
+pub fn StateEstimator::update_joints(Self, Array[@embit-core.JointState], Double) -> Unit
 
 pub(all) struct Trajectory {
   waypoints : Array[Waypoint]

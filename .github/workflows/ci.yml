@@ -8,26 +8,48 @@ on:
 
 jobs:
   check:
-    name: moon check
-    runs-on: ubuntu-latest
+    name: moon check (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install MoonBit
+      - name: Install MoonBit (Unix)
+        if: runner.os != 'Windows'
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> $GITHUB_PATH
-      - name: Check
-        run: moon check
+      - name: Install MoonBit (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
+          echo "$HOME\.moon\bin" >> $GITHUB_PATH
+      - name: Check (strict warnings)
+        run: moon check --warn-list +unnecessary_annotation
 
   test:
-    name: moon test
-    runs-on: ubuntu-latest
+    name: moon test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install MoonBit
+      - name: Install MoonBit (Unix)
+        if: runner.os != 'Windows'
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> $GITHUB_PATH
+      - name: Install MoonBit (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
+          echo "$HOME\.moon\bin" >> $GITHUB_PATH
       - name: Test
         run: moon test
 
@@ -42,3 +64,17 @@ jobs:
           echo "$HOME/.moon/bin" >> $GITHUB_PATH
       - name: Format check
         run: moon fmt --check
+
+  info:
+    name: moon info check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+      - name: Info check
+        run: |
+          moon info
+          git diff --exit-code
