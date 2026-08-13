@@ -1,0 +1,95 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "embit/embit/embit-view"
+
+import {
+  "embit/embit/embit-core",
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) struct DataPoint {
+  timestamp : Double
+  value : Double
+} derive(Eq, @debug.Debug)
+
+pub struct DataSeries {
+  name : String
+  capacity : Int
+  data : Array[DataPoint]
+}
+pub fn DataSeries::clear(Self) -> Unit
+pub fn DataSeries::get_capacity(Self) -> Int
+pub fn DataSeries::get_name(Self) -> String
+pub fn DataSeries::latest(Self) -> DataPoint?
+pub fn DataSeries::length(Self) -> Int
+pub fn DataSeries::max(Self) -> Double?
+pub fn DataSeries::mean(Self) -> Double?
+pub fn DataSeries::min(Self) -> Double?
+pub fn DataSeries::new(String, Int) -> Self
+pub fn DataSeries::push(Self, Double, Double) -> Unit
+pub fn DataSeries::query_range(Self, Double, Double) -> Array[DataPoint]
+pub fn DataSeries::to_string(Self) -> String
+pub fn DataSeries::with_default_capacity(String) -> Self
+
+pub(all) struct PlaybackStream {
+  session_id : String
+  total_frames : Int
+  mut current_frame : Int
+}
+pub fn PlaybackStream::is_finished(Self) -> Bool
+pub fn PlaybackStream::next_frame(Self) -> Int
+pub fn PlaybackStream::progress(Self) -> Double
+
+pub(all) struct RecordingHandle {
+  session_id : String
+  mut frame_count : Int
+  mut is_recording : Bool
+}
+pub fn RecordingHandle::add_frame(Self) -> Unit
+pub fn RecordingHandle::frames(Self) -> Int
+pub fn RecordingHandle::is_active(Self) -> Bool
+pub fn RecordingHandle::new(String) -> Self
+pub fn RecordingHandle::stop(Self) -> Unit
+
+pub struct ViewPanel {
+  model_info : @embit-core.RobotModelInfo
+  widgets : Array[Widget]
+  mut current_recording : RecordingHandle?
+  parameters : Map[String, Double]
+}
+pub fn ViewPanel::add_widget(Self, Widget) -> Unit
+pub fn ViewPanel::export_snapshot(Self) -> String
+pub fn ViewPanel::get_model_info(Self) -> @embit-core.RobotModelInfo
+pub fn ViewPanel::get_parameter(Self, String) -> Double?
+pub fn ViewPanel::list_parameters(Self) -> Array[String]
+pub fn ViewPanel::new() -> Self
+pub fn ViewPanel::playback(Self, RecordingHandle) -> PlaybackStream raise @embit-core.RobotError
+pub fn ViewPanel::record(Self, String) -> RecordingHandle
+pub fn ViewPanel::render(Self, Array[@embit-core.JointState]) -> Unit raise @embit-core.RobotError
+pub fn ViewPanel::stop_recording(Self) -> Unit
+pub fn ViewPanel::tune_parameter(Self, String, Double) -> Unit
+pub fn ViewPanel::widget_count(Self) -> Int
+pub fn ViewPanel::with_model(@embit-core.RobotModelInfo) -> Self
+
+pub(all) struct Widget {
+  widget_type : WidgetType
+  title : String
+  topic : String
+} derive(Eq, @debug.Debug)
+
+pub(all) enum WidgetType {
+  JointPlot
+  SensorDisplay
+  View3D
+  LogPanel
+  ParameterTuner
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+
