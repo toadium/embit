@@ -16,6 +16,8 @@ Embit 是基于 MoonBit 的通用具身智能机器人全栈开发框架，打�
 - 🤖 **通用机器人抽象层**：基于 URDF 标准设计，配置化适配多形态机器人，一次开发跨机型复用
 - 🧠 **全尺度 VLA 推理兼容**：基于 ggml/vla.cpp 构建，支持从 1B 端侧轻量模型到 70B+ 通用具身大模型，覆盖 INT4~FP16 全精度
 - ⚡ **高实时性控制运行时**：依托 MoonBit 结构化并发与内存安全特性，实现微秒级控制环路抖动
+- 📐 **DH 参数运动学**：标准 DH 约定正运动学 + 阻尼最小二乘逆运动学，支持 6-DOF 工业机械臂
+- 📊 **卡尔曼滤波状态估计**：常速度模型 1D 卡尔曼滤波，逐关节独立 [位置, 速度] 估计
 - 🔌 **仿真与真机无缝切换**：统一硬件抽象接口，Sim2Real 迁移成本极低
 - 🎛️ **内置可视化调试工具**：基于 Selene 引擎打造监控面板，支持实时状态观测、数据回放、参数在线调优
 
@@ -94,7 +96,7 @@ embit/
 ├── embit-core/          # 核心基础库：RobotError / JointState / RobotModel / Robot trait / RobotBuilder
 ├── embit-gazebo/        # 仿真通信 SDK：GazeboClient + GazeboRobot + 世界控制 + 场景管理1
 ├── embit-ggml/          # VLA 推理 SDK：VlaModel + Tensor + Tokenizer + Backend
-├── embit-control/       # 运动控制：轨迹规划 + IK/FK + PID + 阻抗 + 笛卡尔控制 + 关节组
+├── embit-control/       # 运动控制：轨迹规划 + DH运动学(IK/FK) + 卡尔曼滤波 + PID + 阻抗 + 笛卡尔控制
 ├── embit-view/          # 可视化面板：Widget / 录制回放 / 实时监控 / DataSeries
 ├── embit-examples/      # 示例工程：11 个 Demo（人形/四足/机械臂/VLA/阻抗/融合/批量/多机型/笛卡尔/全栈）
 ├── docs/                # 项目文档

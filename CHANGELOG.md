@@ -5,7 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to semantic versioning.
 
-## [Unreleased] — 2026-08-13
+## [Unreleased] — 2026-08-14
+
+### Added — Phase 8 算法实现
+
+#### embit-control（运动控制框架）
+- `DHParam`：标准 DH 参数（a / alpha / d / theta / revolute / name）+ `revolute()` / `prismatic()` 工厂
+- `DhFKSolver`：DH 参数正运动学解算器（实现 `FKSolver` trait），四元数组合旋转，`arm_6dof()` 预设
+- `DhIKSolver`：数值雅可比 + 阻尼最小二乘逆运动学（实现 `IKSolver` trait），高斯消元求解 6×6 线性方程组
+- `KalmanFilter1D`：一维卡尔曼滤波器，[位置, 速度] 状态估计，常速度运动模型，predict / update / step
+- `StateEstimator::new_kalman()` / `update_joints()`：卡尔曼模式状态估计，逐关节独立滤波
+- `StateEstimator::is_kalman_enabled()` / `get_filter()` / `reset()`：估计器查询与管理
+
+### Added — Phase 9 质量加固
+
+#### 工程化
+- CI 多平台矩阵（ubuntu-latest / macos-latest / windows-latest）
+- CI 严格警告检查（`moon check --warn-list +unnecessary_annotation`）
+- CI `moon info` 接口一致性检查
+- `embit-examples` 拆分：`models.mbt` / `embodied_demos.mbt` / `pipeline_demos.mbt` / `advanced_demos.mbt`
+
+### 验证
+- `moon check --warn-list +unnecessary_annotation`：0 错误，0 警告
+- `moon test`：311 个测试全部通过
+- `moon fmt` / `moon info`：格式化与接口一致
+
+## [0.1.0] — 2026-08-13
 
 ### Added — Phase 1 核心实现
 
