@@ -1,6 +1,7 @@
 # MoonBit 构建产物
 target/
 build/
+_build/
 .moonbit/
 *.mbt~
 

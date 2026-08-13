@@ -1,0 +1,2 @@
+// 根包：仅作为模块占位，不含源代码。
+// 实际功能由子包 embit-core / embit-gazebo / embit-ggml / embit-control / embit-view / embit-examples 提供。
