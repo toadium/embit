@@ -28,3 +28,10 @@ models/*.gguf
 # 本地环境变量
 .env
 .env.local
+.codeartsdoer/
+
+# Docs optimization backups & reports
+_backups/
+docs-opt-report.md
+docs/review/
+docs/verify/
