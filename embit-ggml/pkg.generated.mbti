@@ -97,4 +97,3 @@ pub fn VlaModel::supported_backends() -> Array[Backend]
 // Type aliases
 
 // Traits
-

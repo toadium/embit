@@ -16,11 +16,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install MoonBit
-        shell: bash
+      - name: Install MoonBit (Unix)
+        if: runner.os != 'Windows'
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> $GITHUB_PATH
+      - name: Install MoonBit (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/powershell.ps1 -o install.ps1
+          .\install.ps1
+          Add-Content -Path $env:GITHUB_PATH -Value "$env:USERPROFILE\.moon\bin"
       - name: Check (strict warnings)
         run: moon check --warn-list +unnecessary_annotation
 
@@ -33,11 +40,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install MoonBit
-        shell: bash
+      - name: Install MoonBit (Unix)
+        if: runner.os != 'Windows'
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> $GITHUB_PATH
+      - name: Install MoonBit (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/powershell.ps1 -o install.ps1
+          .\install.ps1
+          Add-Content -Path $env:GITHUB_PATH -Value "$env:USERPROFILE\.moon\bin"
       - name: Test
         run: moon test
 
@@ -65,8 +79,4 @@ jobs:
       - name: Info check
         run: |
           moon info
-          # Normalize trailing blank lines (platform difference: Windows adds, Linux doesn't)
-          for f in $(find . -name "*.mbti" -not -path "./_build/*"); do
-            sed -i -e :a -e '/^\n*$/{$d;N;ba}' "$f"
-          done
           git diff --exit-code

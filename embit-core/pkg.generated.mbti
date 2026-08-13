@@ -232,4 +232,3 @@ pub(open) trait Robot {
   fn execute_actions(Self, Array[ActionCommand]) -> Unit raise RobotError
   fn get_model_info(Self) -> RobotModelInfo
 }
-

@@ -92,4 +92,3 @@ pub(all) enum WidgetType {
 // Type aliases
 
 // Traits
-
