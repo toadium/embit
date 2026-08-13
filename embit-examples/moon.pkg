@@ -5,10 +5,10 @@
 supported_targets = "native"
 
 import {
-  "toadium/embit/embit-core" @core,
-  "toadium/embit/embit-gazebo" @gazebo,
-  "toadium/embit/embit-ggml" @ggml,
-  "toadium/embit/embit-control" @control,
-  "toadium/embit/embit-view" @view,
+  "walkzzz/embit/embit-core" @core,
+  "walkzzz/embit/embit-gazebo" @gazebo,
+  "walkzzz/embit/embit-ggml" @ggml,
+  "walkzzz/embit/embit-control" @control,
+  "walkzzz/embit/embit-view" @view,
   "moonbitlang/core/math",
 }

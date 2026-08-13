@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "toadium/embit/embit-ggml"
+package "walkzzz/embit/embit-ggml"
 
 import {
   "moonbitlang/core/debug",
-  "toadium/embit/embit-core",
+  "walkzzz/embit/embit-core",
 }
 
 // Values

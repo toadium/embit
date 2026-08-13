@@ -1,9 +1,9 @@
 // Embit — 基于 MoonBit 的通用具身智能机器人全栈开发框架
 // 文档：https://github.com/toadium/embit  许可证：Apache-2.0
 
-name = "toadium/embit"
+name = "walkzzz/embit"
 
-version = "1.0.0"
+version = "0.1.0"
 
 readme = "README.md"
 
