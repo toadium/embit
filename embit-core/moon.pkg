@@ -1,0 +1,7 @@
+// embit-core：核心基础库
+// 定义通用机器人抽象接口、核心数据结构与工具函数，是所有上层模块的共同依赖。
+// 无外部依赖，仅依赖 MoonBit 标准库。
+
+import {
+  "moonbitlang/core/math",
+}

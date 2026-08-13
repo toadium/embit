@@ -1,0 +1,235 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "embit/embit/embit-core"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn clamp(Double, Double, Double) -> Double
+
+pub fn cubic_interp(Double, Double, Double) -> Double
+
+pub fn deg_to_rad(Double) -> Double
+
+pub fn distance3d(Double, Double, Double, Double, Double, Double) -> Double
+
+pub fn hz_to_period(Double) -> Double
+
+pub fn lerp(Double, Double, Double) -> Double
+
+pub fn ms_to_sec(Double) -> Double
+
+pub fn normalize_angle(Double) -> Double
+
+pub fn period_to_hz(Double) -> Double
+
+pub let pi : Double
+
+pub fn rad_to_deg(Double) -> Double
+
+pub fn sec_to_ms(Double) -> Double
+
+pub fn sec_to_us(Double) -> Double
+
+pub let two_pi : Double
+
+pub fn us_to_sec(Double) -> Double
+
+// Errors
+pub(all) suberror RobotError {
+  ConnectError(String)
+  SensorReadError(String)
+  ActionExecuteError(String)
+  ModelLoadError(String)
+  SafetyLimitViolation(String)
+  UnsupportedRobotType(String)
+  InvalidConfig(String)
+} derive(Eq, @debug.Debug)
+
+// Types and methods
+pub(all) struct ActionCommand {
+  joint_commands : Array[(String, Double)]
+  timestamp : Double
+} derive(Eq, @debug.Debug)
+
+pub(all) struct EmbConfig {
+  gazebo_address : String
+  vla_backend : String
+  model_path : String
+  log_level : LogLevel
+  control_frequency : Double
+  safety_check_enabled : Bool
+}
+pub fn EmbConfig::control_period(Self) -> Double
+pub fn EmbConfig::default() -> Self
+pub fn EmbConfig::new(String, String, String, LogLevel, Double, Bool) -> Self
+pub fn EmbConfig::summary(Self) -> String
+
+pub(all) struct JointSpec {
+  name : String
+  joint_type : JointType
+  min_position : Double
+  max_position : Double
+  max_velocity : Double
+  max_effort : Double
+} derive(Eq, @debug.Debug)
+
+pub(all) struct JointState {
+  name : String
+  position : Double
+  velocity : Double
+  effort : Double
+} derive(Eq, @debug.Debug)
+
+pub(all) enum JointType {
+  Revolute
+  Prismatic
+  Continuous
+  Fixed
+} derive(Eq, @debug.Debug)
+
+pub(all) enum LogLevel {
+  Debug
+  Info
+  Warn
+  Error
+} derive(Eq, @debug.Debug)
+pub fn LogLevel::from_str(String) -> Self
+pub fn LogLevel::to_str(Self) -> String
+
+pub(all) struct Quaternion {
+  w : Double
+  x : Double
+  y : Double
+  z : Double
+} derive(Eq, @debug.Debug)
+pub fn Quaternion::conjugate(Self) -> Self
+pub fn Quaternion::from_euler(Double, Double, Double) -> Self
+pub fn Quaternion::identity() -> Self
+pub fn Quaternion::mul(Self, Self) -> Self
+pub fn Quaternion::norm(Self) -> Double
+pub fn Quaternion::normalize(Self) -> Self
+pub fn Quaternion::rotate_point(Self, Double, Double, Double) -> (Double, Double, Double)
+pub fn Quaternion::to_euler(Self) -> (Double, Double, Double)
+
+pub struct RobotBuilder {
+  _sealed : Unit
+}
+pub fn RobotBuilder::arm_6dof() -> RobotModel
+pub fn RobotBuilder::dual_arm_14dof() -> RobotModel
+pub fn RobotBuilder::humanoid_12dof() -> RobotModel
+pub fn RobotBuilder::mobile_base() -> RobotModel
+pub fn RobotBuilder::quadruped_12dof() -> RobotModel
+
+pub(all) struct RobotModel {
+  urdf_path : String
+  joints : Array[JointSpec]
+  sensors : Array[SensorSpec]
+  limits : SafetyLimits
+} derive(Eq, @debug.Debug)
+pub fn RobotModel::to_info(Self, String, String) -> RobotModelInfo
+
+pub(all) struct RobotModelInfo {
+  name : String
+  version : String
+  dof : Int
+  urdf_path : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SafetyLimits {
+  max_joint_velocity : Double
+  max_joint_effort : Double
+  collision_check_distance : Double
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SensorReading {
+  kind : SensorType
+  timestamp : Double
+  data : Bytes
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SensorSpec {
+  name : String
+  sensor_type : SensorType
+  topic : String
+} derive(Eq, @debug.Debug)
+
+pub(all) enum SensorType {
+  Camera
+  Lidar
+  Imu
+  JointEncoder
+} derive(Eq, @debug.Debug)
+
+pub struct Timer {
+  mut elapsed_time : Double
+  mut running : Bool
+  mut tick_count : Int
+}
+pub fn Timer::average_frequency(Self) -> Double
+pub fn Timer::average_interval(Self) -> Double
+pub fn Timer::elapsed(Self) -> Double
+pub fn Timer::is_running(Self) -> Bool
+pub fn Timer::new() -> Self
+pub fn Timer::pause(Self) -> Unit
+pub fn Timer::reset(Self) -> Unit
+pub fn Timer::start() -> Self
+pub fn Timer::tick(Self, Double) -> Unit
+pub fn Timer::ticks(Self) -> Int
+pub fn Timer::unpause(Self) -> Unit
+
+pub(all) struct Transform {
+  translation : (Double, Double, Double)
+  rotation : Quaternion
+} derive(Eq, @debug.Debug)
+pub fn Transform::apply_point(Self, Double, Double, Double) -> (Double, Double, Double)
+pub fn Transform::compose(Self, Self) -> Self
+pub fn Transform::from_pose(Double, Double, Double, Double, Double, Double) -> Self
+pub fn Transform::identity() -> Self
+pub fn Transform::inverse(Self) -> Self
+
+pub(all) struct Twist {
+  vx : Double
+  vy : Double
+  vz : Double
+  wx : Double
+  wy : Double
+  wz : Double
+} derive(Eq, @debug.Debug)
+pub fn Twist::add(Self, Self) -> Self
+pub fn Twist::angular(Double, Double, Double) -> Self
+pub fn Twist::angular_norm(Self) -> Double
+pub fn Twist::dot_wrench(Self, Wrench) -> Double
+pub fn Twist::linear(Double, Double, Double) -> Self
+pub fn Twist::linear_norm(Self) -> Double
+pub fn Twist::new(Double, Double, Double, Double, Double, Double) -> Self
+pub fn Twist::scale(Self, Double) -> Self
+pub fn Twist::zero() -> Self
+
+pub(all) struct Wrench {
+  fx : Double
+  fy : Double
+  fz : Double
+  tx : Double
+  ty : Double
+  tz : Double
+} derive(Eq, @debug.Debug)
+pub fn Wrench::add(Self, Self) -> Self
+pub fn Wrench::force(Double, Double, Double) -> Self
+pub fn Wrench::force_norm(Self) -> Double
+pub fn Wrench::new(Double, Double, Double, Double, Double, Double) -> Self
+pub fn Wrench::scale(Self, Double) -> Self
+pub fn Wrench::torque(Double, Double, Double) -> Self
+pub fn Wrench::torque_norm(Self) -> Double
+pub fn Wrench::zero() -> Self
+
+// Type aliases
+
+// Traits
+pub(open) trait Robot {
+  fn get_sensor_readings(Self) -> Array[SensorReading]
+  fn execute_actions(Self, Array[ActionCommand]) -> Unit raise RobotError
+  fn get_model_info(Self) -> RobotModelInfo
+}
+
