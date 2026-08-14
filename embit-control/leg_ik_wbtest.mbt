@@ -136,26 +136,53 @@ test "LegIKSolver - solve_ik returns 6 joints" {
 }
 
 ///|
-/// IKSolver trait：solve_ik_with_seed 忽略种子，结果与 solve_ik 一致。
-test "LegIKSolver - seed ignored" {
+/// IKSolver trait：solve_ik_with_seed 使用种子选择肘上/肘下解分支。
+test "LegIKSolver - seed selects knee branch" {
   let solver = LegIKSolver::new(0.4, 0.4)
   let target = Pose::{ position: (0.5, 0.0, 0.3), orientation: (0.0, 0.0, 0.0) }
-  let seed : Array[@core.JointState] = [
-    { name: "hip_yaw", position: 1.0, velocity: 0.0, effort: 0.0 },
-    { name: "hip_roll", position: 0.5, velocity: 0.0, effort: 0.0 },
-    { name: "hip_pitch", position: -0.5, velocity: 0.0, effort: 0.0 },
-    { name: "knee_pitch", position: -1.0, velocity: 0.0, effort: 0.0 },
-    { name: "ankle_pitch", position: 0.5, velocity: 0.0, effort: 0.0 },
+  // 种子 knee_pitch > 0 → 肘上解（knee_pitch > 0）
+  let seed_forward : Array[@core.JointState] = [
+    { name: "hip_yaw", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "hip_roll", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "hip_pitch", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "knee_pitch", position: 1.0, velocity: 0.0, effort: 0.0 },
+    { name: "ankle_pitch", position: 0.0, velocity: 0.0, effort: 0.0 },
     { name: "ankle_roll", position: 0.0, velocity: 0.0, effort: 0.0 },
   ]
-  let result_no_seed = solver.solve_ik(target)
-  let result_with_seed = solver.solve_ik_with_seed(target, seed)
-  // 两种调用结果应一致
-  for i in 0..<6 {
-    assert_true(
-      (result_no_seed[i].position - result_with_seed[i].position).abs() < 0.0001,
-    )
-  }
+  // 种子 knee_pitch < 0 → 肘下解（knee_pitch < 0）
+  let seed_backward : Array[@core.JointState] = [
+    { name: "hip_yaw", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "hip_roll", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "hip_pitch", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "knee_pitch", position: -1.0, velocity: 0.0, effort: 0.0 },
+    { name: "ankle_pitch", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "ankle_roll", position: 0.0, velocity: 0.0, effort: 0.0 },
+  ]
+  let result_forward = solver.solve_ik_with_seed(target, seed_forward)
+  let result_backward = solver.solve_ik_with_seed(target, seed_backward)
+  // 肘上解：knee_pitch > 0
+  assert_true(result_forward[3].position > 0.0)
+  // 肘下解：knee_pitch < 0
+  assert_true(result_backward[3].position < 0.0)
+  // 两种解的 knee_pitch 绝对值应相同（对称解）
+  assert_true(
+    (result_forward[3].position + result_backward[3].position).abs() < 0.001,
+  )
+}
+
+///|
+/// solve_planar_with_seed：种子符号决定解分支。
+test "LegIKSolver - planar with seed" {
+  let solver = LegIKSolver::new(0.4, 0.4)
+  let (hip_fwd, knee_fwd) = solver.solve_planar_with_seed(0.5, 0.3, 1.0)
+  let (hip_bwd, knee_bwd) = solver.solve_planar_with_seed(0.5, 0.3, -1.0)
+  // 肘上解 knee > 0，肘下解 knee < 0
+  assert_true(knee_fwd > 0.0)
+  assert_true(knee_bwd < 0.0)
+  // 绝对值相同
+  assert_true((knee_fwd + knee_bwd).abs() < 0.001)
+  // hip 角度不同（两个解分支）
+  assert_true((hip_fwd - hip_bwd).abs() > 0.01)
 }
 
 ///|

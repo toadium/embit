@@ -148,9 +148,11 @@ pub struct LegIKSolver {
 pub fn LegIKSolver::dof(Self) -> Int
 pub fn LegIKSolver::new(Double, Double, ankle_height? : Double) -> Self
 pub fn LegIKSolver::solve_6dof(Self, Pose) -> (Double, Double, Double, Double, Double, Double) raise @embit-core.RobotError
+pub fn LegIKSolver::solve_6dof_with_seed(Self, Pose, Double) -> (Double, Double, Double, Double, Double, Double) raise @embit-core.RobotError
 pub fn LegIKSolver::solve_ik(Self, Pose) -> Array[@embit-core.JointState] raise @embit-core.RobotError
 pub fn LegIKSolver::solve_ik_with_seed(Self, Pose, Array[@embit-core.JointState]) -> Array[@embit-core.JointState] raise @embit-core.RobotError
 pub fn LegIKSolver::solve_planar(Self, Double, Double) -> (Double, Double) raise @embit-core.RobotError
+pub fn LegIKSolver::solve_planar_with_seed(Self, Double, Double, Double) -> (Double, Double) raise @embit-core.RobotError
 
 pub struct MotionController {
   model : @embit-core.RobotModel

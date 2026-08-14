@@ -98,10 +98,38 @@ pub fn LegIKSolver::new(
 /// - `θ_hip = atan2(r, z) - atan2(L2·sin(θ_knee), L1 + L2·cos(θ_knee))`
 ///
 /// 返回 `(hip_pitch, knee_pitch)`。目标不可达时抛出 `RobotError::UnsupportedRobotType`。
+///
+/// 默认膝盖向后弯曲（knee_pitch < 0）。如需选择肘上/肘下解，使用 `solve_planar_with_seed`。
 pub fn LegIKSolver::solve_planar(
   self : LegIKSolver,
   r : Double,
   z : Double,
+) -> (Double, Double) raise @core.RobotError {
+  self.solve_planar_internal(r, z, false)
+}
+
+///|
+/// 2-DOF 平面逆运动学（带种子选择）。
+///
+/// `seed_knee_pitch` 的符号决定解分支：正值选肘上解（膝盖前弯），负值选肘下解（膝盖后弯）。
+pub fn LegIKSolver::solve_planar_with_seed(
+  self : LegIKSolver,
+  r : Double,
+  z : Double,
+  seed_knee_pitch : Double,
+) -> (Double, Double) raise @core.RobotError {
+  self.solve_planar_internal(r, z, seed_knee_pitch > 0.0)
+}
+
+///|
+/// 2-DOF 平面逆运动学内部实现。
+///
+/// `knee_forward = true` 选肘上解（knee_pitch > 0），`false` 选肘下解（knee_pitch < 0）。
+fn LegIKSolver::solve_planar_internal(
+  self : LegIKSolver,
+  r : Double,
+  z : Double,
+  knee_forward : Bool,
 ) -> (Double, Double) raise @core.RobotError {
   let l1 = self.thigh_length
   let l2 = self.shin_length
@@ -130,7 +158,9 @@ pub fn LegIKSolver::solve_planar(
   } else {
     cos_knee
   }
-  let knee_pitch = -@math.acos(cos_clamped) // 负值：膝盖向后弯曲
+  let acos_val = @math.acos(cos_clamped)
+  // knee_forward → 肘上解（正值）；否则肘下解（负值，膝盖向后弯曲）
+  let knee_pitch = if knee_forward { acos_val } else { -acos_val }
   // hip pitch
   let sin_knee = @math.sin(knee_pitch)
   let cos_k = @math.cos(knee_pitch)
@@ -153,6 +183,28 @@ pub fn LegIKSolver::solve_6dof(
   self : LegIKSolver,
   target : Pose,
 ) -> (Double, Double, Double, Double, Double, Double) raise @core.RobotError {
+  self.solve_6dof_internal(target, false)
+}
+
+///|
+/// 6-DOF 腿逆运动学（带种子选择）。
+///
+/// `seed_knee_pitch` 的符号决定肘上/肘下解分支。
+pub fn LegIKSolver::solve_6dof_with_seed(
+  self : LegIKSolver,
+  target : Pose,
+  seed_knee_pitch : Double,
+) -> (Double, Double, Double, Double, Double, Double) raise @core.RobotError {
+  self.solve_6dof_internal(target, seed_knee_pitch > 0.0)
+}
+
+///|
+/// 6-DOF 腿逆运动学内部实现。
+fn LegIKSolver::solve_6dof_internal(
+  self : LegIKSolver,
+  target : Pose,
+  knee_forward : Bool,
+) -> (Double, Double, Double, Double, Double, Double) raise @core.RobotError {
   let (x, y, z) = target.position
   let (roll, pitch, _) = target.orientation
   // hip_yaw：指向目标方向
@@ -161,7 +213,9 @@ pub fn LegIKSolver::solve_6dof(
   let r = (x * x + y * y).sqrt()
   let z_eff = z - self.ankle_height
   // 2-DOF 平面解
-  let (hip_pitch, knee_pitch) = self.solve_planar(r, z_eff)
+  let (hip_pitch, knee_pitch) = self.solve_planar_internal(
+    r, z_eff, knee_forward,
+  )
   // ankle_pitch：剩余角度
   let ankle_pitch = pitch - hip_pitch - knee_pitch
   // hip_roll / ankle_roll：均分目标 roll
@@ -187,17 +241,30 @@ fn leg_angles_to_joint_states(
 }
 
 ///|
+/// 从种子关节状态中提取 knee_pitch 值，用于解分支选择。
+fn extract_seed_knee_pitch(seed : Array[@core.JointState]) -> Double {
+  for joint in seed {
+    if joint.name == "knee_pitch" {
+      return joint.position
+    }
+  }
+  0.0
+}
+
+///|
 impl IKSolver for LegIKSolver with fn solve_ik(self, pose) {
   let angles = self.solve_6dof(pose)
   leg_angles_to_joint_states(angles)
 }
 
 ///|
-impl IKSolver for LegIKSolver with fn solve_ik_with_seed(self, pose, _seed) -> Array[
+/// 基于种子的多解选择：种子中 knee_pitch 的符号决定肘上/肘下解分支。
+impl IKSolver for LegIKSolver with fn solve_ik_with_seed(self, pose, seed) -> Array[
   @core.JointState,
 ] raise @core.RobotError {
-  // 解析解不依赖种子
-  self.solve_ik(pose)
+  let seed_knee = extract_seed_knee_pitch(seed)
+  let angles = self.solve_6dof_with_seed(pose, seed_knee)
+  leg_angles_to_joint_states(angles)
 }
 
 ///|
