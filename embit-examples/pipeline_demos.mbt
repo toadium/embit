@@ -157,13 +157,17 @@ pub fn sensor_fusion_demo() -> Unit {
     // 真实角度 = sin(t)
     let t = i.to_double() * dt
     let true_angle = @core.deg_to_rad(30.0) * @math.sin(t * 10.0) / @core.pi
-    // 陀螺仪读数 = 真实角速度 + 噪声（占位：省略噪声）
+    // 传感器噪声：确定性伪噪声（正弦扰动，模拟周期性电磁干扰）
+    let gyro_noise = 0.002 * @math.sin(t * 63.0)
+    let accel_noise = 0.005 * @math.sin(t * 37.0 + 1.0)
+    // 陀螺仪读数 = 真实角速度 + 噪声
     let gyro_rate = @core.deg_to_rad(30.0) *
       10.0 *
       @math.cos(t * 10.0) /
-      @core.pi
-    // 加速度计读数 = 真实角度 + 噪声（占位：省略噪声）
-    let accel_angle = true_angle
+      @core.pi +
+      gyro_noise
+    // 加速度计读数 = 真实角度 + 噪声
+    let accel_angle = true_angle + accel_noise
     // 融合更新
     fusion.update(gyro_rate, accel_angle, dt)
     // 记录数据
@@ -185,19 +189,19 @@ pub fn batch_inference_demo() -> Unit raise @core.RobotError {
   let tokenizer = @ggml.Tokenizer::default()
   // 2. 查询模型元信息
   let info = model.get_model_info()
-  ignore(info)
   // 3. 准备多组推理输入
   let instructions = [
     "pick up the red block", "place it on the green plate", "open the top drawer",
     "push the blue button", "rotate the valve clockwise",
   ]
-  // 4. 检查上下文窗口是否足够
+  // 4. 检查上下文窗口是否足够（token 数 + margin <= context_size）
   for instruction in instructions {
-    let token_count = tokenizer.count_tokens(instruction)
     let usage = tokenizer.estimate_context_usage(instruction, 50)
-    // 占位：真实实现应检查 usage <= info.context_size
-    ignore(token_count)
-    ignore(usage)
+    if usage > info.context_size {
+      raise InvalidConfig(
+        "context window insufficient: instruction needs \{usage} tokens, model has \{info.context_size}",
+      )
+    }
   }
   // 5. 批量推理
   let inputs : Array[(Bytes, String)] = []
