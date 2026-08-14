@@ -14,6 +14,12 @@ pub(all) struct Twist {
 } derive(Eq, Debug)
 
 ///|
+pub extend Twist with Eq::{not_equal, equal}
+
+///|
+pub extend Twist with @debug.Debug::{to_repr}
+
+///|
 /// 零 Twist（静止）。
 pub fn Twist::zero() -> Twist {
   { vx: 0.0, vy: 0.0, vz: 0.0, wx: 0.0, wy: 0.0, wz: 0.0 }
@@ -96,6 +102,12 @@ pub(all) struct Wrench {
   ty : Double
   tz : Double
 } derive(Eq, Debug)
+
+///|
+pub extend Wrench with Eq::{not_equal, equal}
+
+///|
+pub extend Wrench with @debug.Debug::{to_repr}
 
 ///|
 /// 零 Wrench（无力作用）。

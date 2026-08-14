@@ -9,6 +9,12 @@ pub(all) struct TrajectoryConstraints {
 } derive(Eq, Debug)
 
 ///|
+pub extend TrajectoryConstraints with Eq::{not_equal, equal}
+
+///|
+pub extend TrajectoryConstraints with @debug.Debug::{to_repr}
+
+///|
 /// 轨迹点：某一时刻各关节的目标位置。
 ///
 /// `positions` 为关节名到目标角度的映射，`timestamp` 为该点的时间戳。
@@ -16,6 +22,12 @@ pub(all) struct Waypoint {
   positions : Array[(String, Double)]
   timestamp : Double
 } derive(Eq, Debug)
+
+///|
+pub extend Waypoint with Eq::{not_equal, equal}
+
+///|
+pub extend Waypoint with @debug.Debug::{to_repr}
 
 ///|
 /// 轨迹：有序轨迹点序列。
@@ -26,6 +38,12 @@ pub(all) struct Trajectory {
   waypoints : Array[Waypoint]
   duration : Double
 } derive(Eq, Debug)
+
+///|
+pub extend Trajectory with Eq::{not_equal, equal}
+
+///|
+pub extend Trajectory with @debug.Debug::{to_repr}
 
 ///|
 /// 创建空轨迹。

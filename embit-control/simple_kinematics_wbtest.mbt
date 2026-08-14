@@ -5,7 +5,7 @@
 /// SimpleIKSolver 基本逆运动学。
 test "SimpleIKSolver - solve_ik maps pose to joints" {
   let ik = SimpleIKSolver::new(6)
-  let pose : Pose = { position: (1.0, 2.0, 3.0), orientation: (0.1, 0.2, 0.3) }
+  let pose = Pose::{ position: (1.0, 2.0, 3.0), orientation: (0.1, 0.2, 0.3) }
   let joints = ik.solve_ik(pose)
   assert_eq(joints.length(), 6)
   assert_eq(joints[0].position, 1.0)
@@ -20,7 +20,7 @@ test "SimpleIKSolver - solve_ik maps pose to joints" {
 /// SimpleIKSolver::solve_ik_with_seed 应忽略种子直接求解。
 test "SimpleIKSolver - solve_ik_with_seed ignores seed" {
   let ik = SimpleIKSolver::new(6)
-  let pose : Pose = { position: (0.5, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
+  let pose = Pose::{ position: (0.5, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
   let seed : Array[@core.JointState] = [
     { name: "j1", position: 99.0, velocity: 0.0, effort: 0.0 },
     { name: "j2", position: 99.0, velocity: 0.0, effort: 0.0 },
@@ -74,14 +74,11 @@ test "SimpleCartesianController - move_to and end_effector" {
   let ctrl = SimpleCartesianController::new(6, "gripper")
   assert_eq(ctrl.end_effector_name(), "gripper")
   assert_eq(ctrl.dof(), 6)
-  let current : Pose = {
+  let current = Pose::{
     position: (0.0, 0.0, 0.0),
     orientation: (0.0, 0.0, 0.0),
   }
-  let target : Pose = {
-    position: (0.1, 0.0, 0.0),
-    orientation: (0.0, 0.0, 0.0),
-  }
+  let target = Pose::{ position: (0.1, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
   let traj = ctrl.move_to(current, target, 0.05, 0.01)
   assert_true(traj.waypoints.length() > 1)
 }

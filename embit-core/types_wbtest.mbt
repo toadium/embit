@@ -1,18 +1,18 @@
 ///|
 test "JointState construction and equality" {
-  let j1 : JointState = {
+  let j1 = JointState::{
     name: "shoulder",
     position: 0.0,
     velocity: 0.1,
     effort: 0.5,
   }
-  let j2 : JointState = {
+  let j2 = JointState::{
     name: "shoulder",
     position: 0.0,
     velocity: 0.1,
     effort: 0.5,
   }
-  let j3 : JointState = {
+  let j3 = JointState::{
     name: "elbow",
     position: 0.0,
     velocity: 0.1,
@@ -33,7 +33,7 @@ test "SensorType variants are distinct" {
 
 ///|
 test "SensorReading construction" {
-  let reading : SensorReading = { kind: Camera, timestamp: 1.5, data: b"raw" }
+  let reading = SensorReading::{ kind: Camera, timestamp: 1.5, data: b"raw" }
   assert_eq(reading.kind, Camera)
   assert_eq(reading.timestamp, 1.5)
   assert_eq(reading.data, b"raw")
@@ -41,7 +41,7 @@ test "SensorReading construction" {
 
 ///|
 test "ActionCommand construction" {
-  let cmd : ActionCommand = {
+  let cmd = ActionCommand::{
     joint_commands: [("joint1", 0.5), ("joint2", 1.0)],
     timestamp: 2.0,
   }

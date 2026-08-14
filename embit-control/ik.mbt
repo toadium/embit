@@ -9,6 +9,12 @@ pub(all) struct Pose {
 } derive(Eq, Debug)
 
 ///|
+pub extend Pose with Eq::{not_equal, equal}
+
+///|
+pub extend Pose with @debug.Debug::{to_repr}
+
+///|
 /// 创建位姿。
 pub fn Pose::new(
   x : Double,

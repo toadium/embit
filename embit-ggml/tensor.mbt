@@ -10,6 +10,12 @@ pub(all) struct Tensor {
 } derive(Eq, Debug)
 
 ///|
+pub extend Tensor with Eq::{not_equal, equal}
+
+///|
+pub extend Tensor with @debug.Debug::{to_repr}
+
+///|
 /// 张量数据类型。
 pub(all) enum DType {
   F32
@@ -17,6 +23,12 @@ pub(all) enum DType {
   I32
   I8
 } derive(Eq, Debug)
+
+///|
+pub extend DType with Eq::{not_equal, equal}
+
+///|
+pub extend DType with @debug.Debug::{to_repr}
 
 ///|
 /// 创建标量张量。

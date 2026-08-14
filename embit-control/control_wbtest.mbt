@@ -64,7 +64,7 @@ test "Trajectory - empty creates zero-duration trajectory" {
 
 ///|
 test "Trajectory - to_commands converts waypoints" {
-  let traj : Trajectory = {
+  let traj = Trajectory::{
     waypoints: [
       { positions: [("j1", 0.0)], timestamp: 0.0 },
       { positions: [("j1", 1.0)], timestamp: 1.0 },
@@ -124,7 +124,7 @@ test "MotionController - compute_trajectory linear interpolation" {
   let ctrl = MotionController::new(model)
   let start : Array[(String, Double)] = [("j1", 0.0), ("j2", 0.0)]
   let goal : Array[(String, Double)] = [("j1", 1.0), ("j2", 2.0)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.25,
@@ -148,7 +148,7 @@ test "MotionController - compute_trajectory linear interpolation" {
 test "MotionController - compute_trajectory rejects zero time_step" {
   let model = make_test_model()
   let ctrl = MotionController::new(model)
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.0,
@@ -165,7 +165,7 @@ test "MotionController - compute_trajectory rejects zero time_step" {
 test "MotionController - compute_trajectory rejects mismatched lengths" {
   let model = make_test_model()
   let ctrl = MotionController::new(model)
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.1,
@@ -212,7 +212,7 @@ test "MotionController - execute_trajectory dispatches to robot" {
   let model = make_test_model()
   let ctrl = MotionController::new(model)
   let robot = make_mock_robot()
-  let traj : Trajectory = {
+  let traj = Trajectory::{
     waypoints: [
       { positions: [("j1", 0.0)], timestamp: 0.0 },
       { positions: [("j1", 0.5)], timestamp: 0.5 },
@@ -258,7 +258,7 @@ test "MotionController - compute_trajectory_cubic endpoints" {
   let ctrl = MotionController::new(model)
   let start : Array[(String, Double)] = [("j1", 0.0)]
   let goal : Array[(String, Double)] = [("j1", 1.0)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.1,
@@ -282,7 +282,7 @@ test "MotionController - compute_trajectory_cubic endpoints" {
 test "MotionController - compute_trajectory_cubic rejects zero time_step" {
   let model = make_test_model()
   let ctrl = MotionController::new(model)
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.0,
@@ -302,7 +302,7 @@ test "MotionController - cubic differs from linear at midpoints" {
   let ctrl = MotionController::new(model)
   let start : Array[(String, Double)] = [("j1", 0.0)]
   let goal : Array[(String, Double)] = [("j1", 1.0)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.05,
@@ -325,7 +325,7 @@ test "MotionController - compute_trajectory_quintic endpoints" {
   let ctrl = MotionController::new(model)
   let start : Array[(String, Double)] = [("j1", 0.0)]
   let goal : Array[(String, Double)] = [("j1", 1.0)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.1,
@@ -349,7 +349,7 @@ test "MotionController - compute_trajectory_quintic endpoints" {
 test "MotionController - compute_trajectory_quintic rejects zero time_step" {
   let model = make_test_model()
   let ctrl = MotionController::new(model)
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.0,
@@ -369,7 +369,7 @@ test "MotionController - quintic is smoother than cubic at quarter" {
   let ctrl = MotionController::new(model)
   let start : Array[(String, Double)] = [("j1", 0.0)]
   let goal : Array[(String, Double)] = [("j1", 1.0)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.05,
@@ -391,14 +391,14 @@ test "MotionController - quintic is smoother than cubic at quarter" {
 ///|
 /// 融合两条轨迹应生成包含两段加过渡段的轨迹。
 test "Trajectory - blend produces combined trajectory" {
-  let t1 : Trajectory = {
+  let t1 = Trajectory::{
     waypoints: [
       { positions: [("j1", 0.0)], timestamp: 0.0 },
       { positions: [("j1", 1.0)], timestamp: 1.0 },
     ],
     duration: 1.0,
   }
-  let t2 : Trajectory = {
+  let t2 = Trajectory::{
     waypoints: [
       { positions: [("j1", 2.0)], timestamp: 0.0 },
       { positions: [("j1", 3.0)], timestamp: 1.0 },
@@ -415,14 +415,14 @@ test "Trajectory - blend produces combined trajectory" {
 ///|
 /// 融合后第一段应保持原始轨迹。
 test "Trajectory - blend preserves first trajectory" {
-  let t1 : Trajectory = {
+  let t1 = Trajectory::{
     waypoints: [
       { positions: [("j1", 0.0)], timestamp: 0.0 },
       { positions: [("j1", 1.0)], timestamp: 1.0 },
     ],
     duration: 1.0,
   }
-  let t2 : Trajectory = {
+  let t2 = Trajectory::{
     waypoints: [{ positions: [("j1", 2.0)], timestamp: 0.0 }],
     duration: 0.0,
   }
@@ -437,11 +437,11 @@ test "Trajectory - blend preserves first trajectory" {
 ///|
 /// 融合零时长应抛出错误。
 test "Trajectory - blend zero duration raises error" {
-  let t1 : Trajectory = {
+  let t1 = Trajectory::{
     waypoints: [{ positions: [("j1", 0.0)], timestamp: 0.0 }],
     duration: 0.0,
   }
-  let t2 : Trajectory = {
+  let t2 = Trajectory::{
     waypoints: [{ positions: [("j1", 1.0)], timestamp: 0.0 }],
     duration: 0.0,
   }
@@ -457,7 +457,7 @@ test "Trajectory - blend zero duration raises error" {
 /// 融合空轨迹应抛出错误。
 test "Trajectory - blend empty trajectory raises error" {
   let t1 = Trajectory::empty()
-  let t2 : Trajectory = {
+  let t2 = Trajectory::{
     waypoints: [{ positions: [("j1", 1.0)], timestamp: 0.0 }],
     duration: 0.0,
   }
@@ -478,7 +478,7 @@ test "MotionController - compute_trajectory with zero max_velocity" {
   let ctrl = MotionController::new(model)
   let start : Array[(String, Double)] = [("j1", 0.0)]
   let goal : Array[(String, Double)] = [("j1", 1.0)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 0.0,
     max_acceleration: 5.0,
     time_step: 0.1,
@@ -494,7 +494,7 @@ test "MotionController - compute_trajectory with zero max_velocity" {
 test "MotionController - cubic rejects mismatched lengths" {
   let model = make_test_model()
   let ctrl = MotionController::new(model)
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.1,
@@ -514,7 +514,7 @@ test "MotionController - cubic zero duration same start goal" {
   let ctrl = MotionController::new(model)
   let start : Array[(String, Double)] = [("j1", 0.5)]
   let goal : Array[(String, Double)] = [("j1", 0.5)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.1,
@@ -533,7 +533,7 @@ test "MotionController - cubic zero duration same start goal" {
 test "MotionController - quintic rejects mismatched lengths" {
   let model = make_test_model()
   let ctrl = MotionController::new(model)
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.1,
@@ -553,7 +553,7 @@ test "MotionController - quintic zero duration same start goal" {
   let ctrl = MotionController::new(model)
   let start : Array[(String, Double)] = [("j1", 0.3)]
   let goal : Array[(String, Double)] = [("j1", 0.3)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 5.0,
     time_step: 0.1,

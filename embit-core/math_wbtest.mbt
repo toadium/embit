@@ -86,7 +86,7 @@ test "Quaternion - mul conjugate returns identity for unit quaternion" {
 ///|
 /// 共轭应反转矢量分量。
 test "Quaternion - conjugate negates vector part" {
-  let q = { w: 0.5, x: 0.3, y: -0.2, z: 0.4 }
+  let q = Quaternion::{ w: 0.5, x: 0.3, y: -0.2, z: 0.4 }
   let qc = q.conjugate()
   assert_eq(qc.w, 0.5)
   assert_eq(qc.x, -0.3)
@@ -104,7 +104,7 @@ test "Quaternion - norm of unit quaternion is 1" {
 ///|
 /// 归一化后模应为 1。
 test "Quaternion - normalize makes norm 1" {
-  let q = { w: 2.0, x: 0.0, y: 0.0, z: 0.0 }
+  let q = Quaternion::{ w: 2.0, x: 0.0, y: 0.0, z: 0.0 }
   let qn = q.normalize()
   assert_approx(qn.norm(), 1.0)
   assert_approx(qn.w, 1.0)
@@ -113,7 +113,7 @@ test "Quaternion - normalize makes norm 1" {
 ///|
 /// 归一化零四元数应返回单位四元数。
 test "Quaternion - normalize zero returns identity" {
-  let q = { w: 0.0, x: 0.0, y: 0.0, z: 0.0 }
+  let q = Quaternion::{ w: 0.0, x: 0.0, y: 0.0, z: 0.0 }
   let qn = q.normalize()
   assert_approx(qn.w, 1.0)
   assert_approx(qn.x, 0.0)

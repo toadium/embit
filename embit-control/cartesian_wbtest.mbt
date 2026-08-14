@@ -103,7 +103,7 @@ test "CartesianController - end_effector_name" {
 /// 相同位姿的 move_to 应生成单点轨迹（距离为零）。
 test "CartesianController - move_to same pose" {
   let ctrl = make_controller()
-  let pose : Pose = { position: (1.0, 2.0, 3.0), orientation: (0.0, 0.0, 0.0) }
+  let pose = Pose::{ position: (1.0, 2.0, 3.0), orientation: (0.0, 0.0, 0.0) }
   let traj = ctrl.move_to(pose, pose, 1.0, 0.1)
   assert_true(traj.length() >= 1)
   assert_true(traj.duration < 0.001)
@@ -113,11 +113,8 @@ test "CartesianController - move_to same pose" {
 /// move_to 应生成线性插值轨迹，起点和终点匹配。
 test "CartesianController - move_to linear interpolation" {
   let ctrl = make_controller()
-  let start : Pose = { position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
-  let target : Pose = {
-    position: (1.0, 0.0, 0.0),
-    orientation: (0.0, 0.0, 0.0),
-  }
+  let start = Pose::{ position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
+  let target = Pose::{ position: (1.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
   let traj = ctrl.move_to(start, target, 1.0, 0.1)
   // 距离 = 1.0, 速度 = 1.0, 时长 = 1.0s
   assert_true((traj.duration - 1.0).abs() < 0.001)
@@ -137,11 +134,8 @@ test "CartesianController - move_to linear interpolation" {
 /// move_to 的时间戳应单调递增。
 test "CartesianController - move_to timestamps monotonic" {
   let ctrl = make_controller()
-  let start : Pose = { position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
-  let target : Pose = {
-    position: (0.0, 0.0, 2.0),
-    orientation: (0.0, 0.0, 0.0),
-  }
+  let start = Pose::{ position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
+  let target = Pose::{ position: (0.0, 0.0, 2.0), orientation: (0.0, 0.0, 0.0) }
   let traj = ctrl.move_to(start, target, 1.0, 0.2)
   for i in 1..<traj.length() {
     assert_true(traj.waypoints[i].timestamp >= traj.waypoints[i - 1].timestamp)
@@ -152,11 +146,8 @@ test "CartesianController - move_to timestamps monotonic" {
 /// move_to 零速度应抛出 InvalidConfig。
 test "CartesianController - move_to zero velocity raises" {
   let ctrl = make_controller()
-  let start : Pose = { position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
-  let target : Pose = {
-    position: (1.0, 0.0, 0.0),
-    orientation: (0.0, 0.0, 0.0),
-  }
+  let start = Pose::{ position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
+  let target = Pose::{ position: (1.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
   try ctrl.move_to(start, target, 0.0, 0.1) catch {
     InvalidConfig(msg) => assert_true(msg.contains("velocity"))
     _ => fail("unexpected RobotError variant")
@@ -169,11 +160,8 @@ test "CartesianController - move_to zero velocity raises" {
 /// move_to 零时间步应抛出 InvalidConfig。
 test "CartesianController - move_to zero time_step raises" {
   let ctrl = make_controller()
-  let start : Pose = { position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
-  let target : Pose = {
-    position: (1.0, 0.0, 0.0),
-    orientation: (0.0, 0.0, 0.0),
-  }
+  let start = Pose::{ position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
+  let target = Pose::{ position: (1.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
   try ctrl.move_to(start, target, 1.0, 0.0) catch {
     InvalidConfig(msg) => assert_true(msg.contains("time_step"))
     _ => fail("unexpected RobotError variant")
@@ -186,7 +174,7 @@ test "CartesianController - move_to zero time_step raises" {
 /// to_joint_states 应将每个笛卡尔位姿转换为关节状态序列。
 test "CartesianController - to_joint_states" {
   let ctrl = make_controller()
-  let traj : CartesianTrajectory = {
+  let traj = CartesianTrajectory::{
     waypoints: [
       {
         pose: { position: (1.0, 2.0, 3.0), orientation: (0.0, 0.0, 0.0) },
@@ -235,11 +223,8 @@ test "CartesianController - get_end_effector_pose" {
 /// 完整管线：move_to → to_joint_states → get_end_effector_pose 应保持位姿一致性。
 test "CartesianController - full pipeline consistency" {
   let ctrl = make_controller()
-  let start : Pose = { position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
-  let target : Pose = {
-    position: (0.5, 0.3, 0.2),
-    orientation: (0.1, 0.2, 0.3),
-  }
+  let start = Pose::{ position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
+  let target = Pose::{ position: (0.5, 0.3, 0.2), orientation: (0.1, 0.2, 0.3) }
   // 1. 规划笛卡尔轨迹
   let traj = ctrl.move_to(start, target, 0.5, 0.1)
   assert_true(traj.length() > 1)
@@ -278,11 +263,8 @@ test "CartesianTrajectory - empty" {
 /// 3D 空间对角线移动应正确计算距离。
 test "CartesianController - diagonal 3d move" {
   let ctrl = make_controller()
-  let start : Pose = { position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
-  let target : Pose = {
-    position: (1.0, 1.0, 1.0),
-    orientation: (0.0, 0.0, 0.0),
-  }
+  let start = Pose::{ position: (0.0, 0.0, 0.0), orientation: (0.0, 0.0, 0.0) }
+  let target = Pose::{ position: (1.0, 1.0, 1.0), orientation: (0.0, 0.0, 0.0) }
   let traj = ctrl.move_to(start, target, 1.0, 0.1)
   // 距离 = sqrt(3) ≈ 1.732, 速度 = 1.0, 时长 ≈ 1.732s
   let expected = 1.7320508

@@ -28,12 +28,18 @@ pub(all) struct CartesianTrajectory {
   duration : Double
 } derive(Eq, @debug.Debug)
 pub fn CartesianTrajectory::empty() -> Self
+pub fn CartesianTrajectory::equal(Self, Self) -> Bool
 pub fn CartesianTrajectory::length(Self) -> Int
+pub fn CartesianTrajectory::not_equal(Self, Self) -> Bool
+pub fn CartesianTrajectory::to_repr(Self) -> @debug.Repr
 
 pub(all) struct CartesianWaypoint {
   pose : Pose
   timestamp : Double
 } derive(Eq, @debug.Debug)
+pub fn CartesianWaypoint::equal(Self, Self) -> Bool
+pub fn CartesianWaypoint::not_equal(Self, Self) -> Bool
+pub fn CartesianWaypoint::to_repr(Self) -> @debug.Repr
 
 pub(all) struct DHParam {
   a : Double
@@ -171,7 +177,10 @@ pub(all) struct Pose {
   position : (Double, Double, Double)
   orientation : (Double, Double, Double)
 } derive(Eq, @debug.Debug)
+pub fn Pose::equal(Self, Self) -> Bool
 pub fn Pose::new(Double, Double, Double, Double, Double, Double) -> Self
+pub fn Pose::not_equal(Self, Self) -> Bool
+pub fn Pose::to_repr(Self) -> @debug.Repr
 
 pub struct SensorFusion {
   alpha : Double
@@ -243,19 +252,28 @@ pub(all) struct Trajectory {
 } derive(Eq, @debug.Debug)
 pub fn Trajectory::blend(Self, Self, Double) -> Self raise @embit-core.RobotError
 pub fn Trajectory::empty() -> Self
+pub fn Trajectory::equal(Self, Self) -> Bool
 pub fn Trajectory::length(Self) -> Int
+pub fn Trajectory::not_equal(Self, Self) -> Bool
 pub fn Trajectory::to_commands(Self) -> Array[@embit-core.ActionCommand]
+pub fn Trajectory::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TrajectoryConstraints {
   max_velocity : Double
   max_acceleration : Double
   time_step : Double
 } derive(Eq, @debug.Debug)
+pub fn TrajectoryConstraints::equal(Self, Self) -> Bool
+pub fn TrajectoryConstraints::not_equal(Self, Self) -> Bool
+pub fn TrajectoryConstraints::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Waypoint {
   positions : Array[(String, Double)]
   timestamp : Double
 } derive(Eq, @debug.Debug)
+pub fn Waypoint::equal(Self, Self) -> Bool
+pub fn Waypoint::not_equal(Self, Self) -> Bool
+pub fn Waypoint::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
@@ -270,4 +288,3 @@ pub(open) trait IKSolver {
   fn solve_ik_with_seed(Self, Pose, Array[@embit-core.JointState]) -> Array[@embit-core.JointState] raise @embit-core.RobotError
   fn dof(Self) -> Int
 }
-

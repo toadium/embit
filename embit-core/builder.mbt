@@ -15,7 +15,7 @@ pub struct RobotBuilder {
 /// 传感器：头部相机 + 躯干 IMU
 /// 安全限幅：2.0 rad/s, 50 Nm, 0.05m
 pub fn RobotBuilder::humanoid_12dof() -> RobotModel {
-  let _builder : RobotBuilder = { _sealed: () }
+  let _builder = RobotBuilder::{ _sealed: () }
   let joints : Array[JointSpec] = [
     // 左腿
     {

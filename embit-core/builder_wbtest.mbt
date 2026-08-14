@@ -4,7 +4,7 @@
 ///|
 /// RobotBuilder 可被构造。
 test "RobotBuilder - constructable" {
-  let _ : RobotBuilder = { _sealed: () }
+  let _ = RobotBuilder::{ _sealed: () }
 }
 
 ///|

@@ -16,6 +16,9 @@ pub(all) enum Backend {
   Cuda
   Metal
 } derive(Eq, @debug.Debug)
+pub fn Backend::equal(Self, Self) -> Bool
+pub fn Backend::not_equal(Self, Self) -> Bool
+pub fn Backend::to_repr(Self) -> @debug.Repr
 
 pub(all) enum DType {
   F32
@@ -23,6 +26,9 @@ pub(all) enum DType {
   I32
   I8
 } derive(Eq, @debug.Debug)
+pub fn DType::equal(Self, Self) -> Bool
+pub fn DType::not_equal(Self, Self) -> Bool
+pub fn DType::to_repr(Self) -> @debug.Repr
 
 type GgmlContext
 
@@ -33,7 +39,10 @@ pub(all) struct InferConfig {
   max_tokens : Int
 } derive(Eq, @debug.Debug)
 pub fn InferConfig::default() -> Self
+pub fn InferConfig::equal(Self, Self) -> Bool
 pub fn InferConfig::new(Double, Int, Double, Int) -> Self
+pub fn InferConfig::not_equal(Self, Self) -> Bool
+pub fn InferConfig::to_repr(Self) -> @debug.Repr
 
 pub(all) struct ModelInfo {
   context_size : Int
@@ -42,6 +51,9 @@ pub(all) struct ModelInfo {
   backend : Backend
   is_loaded : Bool
 } derive(Eq, @debug.Debug)
+pub fn ModelInfo::equal(Self, Self) -> Bool
+pub fn ModelInfo::not_equal(Self, Self) -> Bool
+pub fn ModelInfo::to_repr(Self) -> @debug.Repr
 
 pub(all) enum QuantType {
   Fp16
@@ -49,18 +61,24 @@ pub(all) enum QuantType {
   Q4
   Q2
 } derive(Eq, @debug.Debug)
+pub fn QuantType::equal(Self, Self) -> Bool
+pub fn QuantType::not_equal(Self, Self) -> Bool
+pub fn QuantType::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Tensor {
   shape : Array[Int]
   data : Array[Double]
 } derive(Eq, @debug.Debug)
 pub fn Tensor::add(Self, Self) -> Self raise @embit-core.RobotError
+pub fn Tensor::equal(Self, Self) -> Bool
 pub fn Tensor::new(Array[Int], Array[Double]) -> Self raise @embit-core.RobotError
+pub fn Tensor::not_equal(Self, Self) -> Bool
 pub fn Tensor::rank(Self) -> Int
 pub fn Tensor::scalar(Double) -> Self
 pub fn Tensor::scale(Self, Double) -> Self
 pub fn Tensor::shape_size(Array[Int]) -> Int
 pub fn Tensor::size(Self) -> Int
+pub fn Tensor::to_repr(Self) -> @debug.Repr
 pub fn Tensor::to_scalar(Self) -> Double raise @embit-core.RobotError
 pub fn Tensor::vector(Array[Double]) -> Self
 
@@ -97,4 +115,3 @@ pub fn VlaModel::supported_backends() -> Array[Backend]
 // Type aliases
 
 // Traits
-

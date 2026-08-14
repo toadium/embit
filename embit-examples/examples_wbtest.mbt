@@ -37,7 +37,7 @@ test "integration - full pipeline data flow" {
   assert_eq(model.infer_count(), 1)
 
   // 3. 运动控制器与轨迹规划
-  let robot_model : @core.RobotModel = {
+  let robot_model = @core.RobotModel::{
     urdf_path: "",
     joints: [],
     sensors: [],
@@ -53,7 +53,7 @@ test "integration - full pipeline data flow" {
 
   let start : Array[(String, Double)] = [("j1", 0.0)]
   let goal : Array[(String, Double)] = [("j1", 1.0)]
-  let constraints : @control.TrajectoryConstraints = {
+  let constraints = @control.TrajectoryConstraints::{
     max_velocity: 2.0,
     max_acceleration: 5.0,
     time_step: 0.1,
@@ -181,7 +181,7 @@ test "integration - RobotBuilder joint counts" {
 /// 验证 GazeboRobot 实现 Robot trait 接口。
 test "integration - GazeboRobot implements Robot trait" {
   let sim = @gazebo.GazeboClient::connect("localhost:9020")
-  let model_info : @core.RobotModelInfo = {
+  let model_info = @core.RobotModelInfo::{
     name: "test_robot",
     version: "1.0",
     dof: 6,

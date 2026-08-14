@@ -32,7 +32,7 @@ pub fn humanoid_walk() -> Unit raise @core.RobotError {
   // 7. 规划行走轨迹（双腿交替前进）
   let start : Array[(String, Double)] = [("left_hip", 0.0), ("right_hip", 0.0)]
   let goal : Array[(String, Double)] = [("left_hip", 0.5), ("right_hip", -0.5)]
-  let constraints : @control.TrajectoryConstraints = {
+  let constraints = @control.TrajectoryConstraints::{
     max_velocity: 1.5,
     max_acceleration: 5.0,
     time_step: 0.05,
@@ -80,7 +80,7 @@ pub fn quadruped_avoid() -> Unit raise @core.RobotError {
   // 规划转向轨迹
   let start : Array[(String, Double)] = [("fl_hip", 0.0), ("fr_hip", 0.0)]
   let goal : Array[(String, Double)] = [("fl_hip", 0.3), ("fr_hip", -0.3)]
-  let constraints : @control.TrajectoryConstraints = {
+  let constraints = @control.TrajectoryConstraints::{
     max_velocity: 2.0,
     max_acceleration: 8.0,
     time_step: 0.02,
@@ -134,7 +134,7 @@ pub fn arm_grasp() -> Unit raise @core.RobotError {
     ("joint2", -0.5),
     ("joint3", 1.2),
   ]
-  let constraints : @control.TrajectoryConstraints = {
+  let constraints = @control.TrajectoryConstraints::{
     max_velocity: 1.0,
     max_acceleration: 4.0,
     time_step: 0.01,

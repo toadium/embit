@@ -12,6 +12,12 @@ pub(all) enum WidgetType {
 } derive(Eq, Debug)
 
 ///|
+pub extend WidgetType with Eq::{not_equal, equal}
+
+///|
+pub extend WidgetType with @debug.Debug::{to_repr}
+
+///|
 /// 面板组件描述。
 ///
 /// `widget_type` 标识组件类别，`title` 为面板标题，`topic` 为数据源话题。
@@ -20,6 +26,12 @@ pub(all) struct Widget {
   title : String
   topic : String
 } derive(Eq, Debug)
+
+///|
+pub extend Widget with Eq::{not_equal, equal}
+
+///|
+pub extend Widget with @debug.Debug::{to_repr}
 
 ///|
 /// 录制会话句柄。

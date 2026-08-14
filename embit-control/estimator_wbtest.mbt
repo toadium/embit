@@ -61,7 +61,9 @@ test "KalmanFilter1D - track constant velocity" {
 test "KalmanFilter1D - noise suppression" {
   let kf = KalmanFilter1D::new(0.001, 0.01, 0.1)
   // 观测值在 1.0 附近抖动
-  let noisy = [1.05, 0.95, 1.08, 0.92, 1.03, 0.97, 1.06, 0.94, 1.02, 0.98]
+  let noisy : ReadOnlyArray[Double] = [
+    1.05, 0.95, 1.08, 0.92, 1.03, 0.97, 1.06, 0.94, 1.02, 0.98,
+  ]
   for i in 0..<100 {
     let idx = i % 10
     kf.step(noisy[idx], 0.01)

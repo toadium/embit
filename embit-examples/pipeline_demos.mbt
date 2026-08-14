@@ -9,12 +9,12 @@ pub fn demo_skeleton() -> Unit {
   let _ = @gazebo.GazeboClient::connect("localhost:9000")
   let _ = @ggml.VlaModel::load("models/smolvla.gguf")
   let _ = @view.ViewPanel::new()
-  let limits : @core.SafetyLimits = {
+  let limits = @core.SafetyLimits::{
     max_joint_velocity: 0.0,
     max_joint_effort: 0.0,
     collision_check_distance: 0.0,
   }
-  let model : @core.RobotModel = {
+  let model = @core.RobotModel::{
     urdf_path: "",
     joints: [],
     sensors: [],

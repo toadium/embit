@@ -15,6 +15,9 @@ pub(all) struct DataPoint {
   timestamp : Double
   value : Double
 } derive(Eq, @debug.Debug)
+pub fn DataPoint::equal(Self, Self) -> Bool
+pub fn DataPoint::not_equal(Self, Self) -> Bool
+pub fn DataPoint::to_repr(Self) -> @debug.Repr
 
 pub struct DataSeries {
   name : String
@@ -80,6 +83,9 @@ pub(all) struct Widget {
   title : String
   topic : String
 } derive(Eq, @debug.Debug)
+pub fn Widget::equal(Self, Self) -> Bool
+pub fn Widget::not_equal(Self, Self) -> Bool
+pub fn Widget::to_repr(Self) -> @debug.Repr
 
 pub(all) enum WidgetType {
   JointPlot
@@ -88,8 +94,10 @@ pub(all) enum WidgetType {
   LogPanel
   ParameterTuner
 } derive(Eq, @debug.Debug)
+pub fn WidgetType::equal(Self, Self) -> Bool
+pub fn WidgetType::not_equal(Self, Self) -> Bool
+pub fn WidgetType::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
 // Traits
-

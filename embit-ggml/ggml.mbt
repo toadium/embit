@@ -11,6 +11,12 @@ pub(all) enum Backend {
 } derive(Eq, Debug)
 
 ///|
+pub extend Backend with Eq::{not_equal, equal}
+
+///|
+pub extend Backend with @debug.Debug::{to_repr}
+
+///|
 /// VLA（Vision-Language-Action）模型，封装多模态推理能力。
 ///
 /// 通过 FFI 绑定 ggml/vla.cpp，支持图像 + 语言指令 → 动作序列推理。
@@ -40,6 +46,12 @@ pub(all) struct InferConfig {
   top_p : Double // Top-P 核采样阈值（0~1，1.0 表示不限制）
   max_tokens : Int // 最大输出 token 数（>0，0 表示不限制）
 } derive(Eq, Debug)
+
+///|
+pub extend InferConfig with Eq::{not_equal, equal}
+
+///|
+pub extend InferConfig with @debug.Debug::{to_repr}
 
 ///|
 /// 默认推理配置：temperature=1.0, top_k=0, top_p=1.0, max_tokens=0。
@@ -156,6 +168,12 @@ pub(all) enum QuantType {
 } derive(Eq, Debug)
 
 ///|
+pub extend QuantType with Eq::{not_equal, equal}
+
+///|
+pub extend QuantType with @debug.Debug::{to_repr}
+
+///|
 /// 模型元信息。
 ///
 /// 描述 VLA 模型的关键属性，用于模型选择与资源规划。
@@ -166,6 +184,12 @@ pub(all) struct ModelInfo {
   backend : Backend // 当前推理后端
   is_loaded : Bool // 加载状态
 } derive(Eq, Debug)
+
+///|
+pub extend ModelInfo with Eq::{not_equal, equal}
+
+///|
+pub extend ModelInfo with @debug.Debug::{to_repr}
 
 ///|
 /// 查询模型元信息。

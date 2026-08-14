@@ -8,6 +8,12 @@ pub(all) enum JointType {
 } derive(Eq, Debug)
 
 ///|
+pub extend JointType with Eq::{not_equal, equal}
+
+///|
+pub extend JointType with @debug.Debug::{to_repr}
+
+///|
 /// 关节规格描述。
 ///
 /// 来源于 URDF 模型解析，定义关节的运动学约束与安全限幅。
@@ -21,12 +27,24 @@ pub(all) struct JointSpec {
 } derive(Eq, Debug)
 
 ///|
+pub extend JointSpec with Eq::{not_equal, equal}
+
+///|
+pub extend JointSpec with @debug.Debug::{to_repr}
+
+///|
 /// 传感器规格描述。
 pub(all) struct SensorSpec {
   name : String
   sensor_type : SensorType
   topic : String // 话题名（Ignition Transport 话题）
 } derive(Eq, Debug)
+
+///|
+pub extend SensorSpec with Eq::{not_equal, equal}
+
+///|
+pub extend SensorSpec with @debug.Debug::{to_repr}
 
 ///|
 /// 安全约束参数。
@@ -40,6 +58,12 @@ pub(all) struct SafetyLimits {
 } derive(Eq, Debug)
 
 ///|
+pub extend SafetyLimits with Eq::{not_equal, equal}
+
+///|
+pub extend SafetyLimits with @debug.Debug::{to_repr}
+
+///|
 /// 机器人模型描述。
 ///
 /// 由 URDF 文件解析生成，是 embit-control 运动控制框架的输入。
@@ -51,6 +75,12 @@ pub(all) struct RobotModel {
 } derive(Eq, Debug)
 
 ///|
+pub extend RobotModel with Eq::{not_equal, equal}
+
+///|
+pub extend RobotModel with @debug.Debug::{to_repr}
+
+///|
 /// 机器人模型运行时信息。
 ///
 /// 由 `Robot::get_model_info` 返回，提供机型名称、版本与自由度等元数据。
@@ -60,3 +90,9 @@ pub(all) struct RobotModelInfo {
   dof : Int // 自由度
   urdf_path : String
 } derive(Eq, Debug)
+
+///|
+pub extend RobotModelInfo with Eq::{not_equal, equal}
+
+///|
+pub extend RobotModelInfo with @debug.Debug::{to_repr}

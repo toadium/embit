@@ -8,6 +8,12 @@ pub(all) enum LogLevel {
 } derive(Eq, Debug)
 
 ///|
+pub extend LogLevel with Eq::{not_equal, equal}
+
+///|
+pub extend LogLevel with @debug.Debug::{to_repr}
+
+///|
 /// Embit 框架全局配置。
 ///
 /// 统一管理各模块的运行参数，可通过环境变量或代码构造。

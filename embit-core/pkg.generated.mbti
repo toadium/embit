@@ -46,12 +46,18 @@ pub(all) suberror RobotError {
   UnsupportedRobotType(String)
   InvalidConfig(String)
 } derive(Eq, @debug.Debug)
+pub fn RobotError::equal(Self, Self) -> Bool
+pub fn RobotError::not_equal(Self, Self) -> Bool
+pub fn RobotError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) struct ActionCommand {
   joint_commands : Array[(String, Double)]
   timestamp : Double
 } derive(Eq, @debug.Debug)
+pub fn ActionCommand::equal(Self, Self) -> Bool
+pub fn ActionCommand::not_equal(Self, Self) -> Bool
+pub fn ActionCommand::to_repr(Self) -> @debug.Repr
 
 pub(all) struct EmbConfig {
   gazebo_address : String
@@ -74,6 +80,9 @@ pub(all) struct JointSpec {
   max_velocity : Double
   max_effort : Double
 } derive(Eq, @debug.Debug)
+pub fn JointSpec::equal(Self, Self) -> Bool
+pub fn JointSpec::not_equal(Self, Self) -> Bool
+pub fn JointSpec::to_repr(Self) -> @debug.Repr
 
 pub(all) struct JointState {
   name : String
@@ -81,6 +90,9 @@ pub(all) struct JointState {
   velocity : Double
   effort : Double
 } derive(Eq, @debug.Debug)
+pub fn JointState::equal(Self, Self) -> Bool
+pub fn JointState::not_equal(Self, Self) -> Bool
+pub fn JointState::to_repr(Self) -> @debug.Repr
 
 pub(all) enum JointType {
   Revolute
@@ -88,6 +100,9 @@ pub(all) enum JointType {
   Continuous
   Fixed
 } derive(Eq, @debug.Debug)
+pub fn JointType::equal(Self, Self) -> Bool
+pub fn JointType::not_equal(Self, Self) -> Bool
+pub fn JointType::to_repr(Self) -> @debug.Repr
 
 pub(all) enum LogLevel {
   Debug
@@ -95,7 +110,10 @@ pub(all) enum LogLevel {
   Warn
   Error
 } derive(Eq, @debug.Debug)
+pub fn LogLevel::equal(Self, Self) -> Bool
 pub fn LogLevel::from_str(String) -> Self
+pub fn LogLevel::not_equal(Self, Self) -> Bool
+pub fn LogLevel::to_repr(Self) -> @debug.Repr
 pub fn LogLevel::to_str(Self) -> String
 
 pub(all) struct Quaternion {
@@ -105,13 +123,16 @@ pub(all) struct Quaternion {
   z : Double
 } derive(Eq, @debug.Debug)
 pub fn Quaternion::conjugate(Self) -> Self
+pub fn Quaternion::equal(Self, Self) -> Bool
 pub fn Quaternion::from_euler(Double, Double, Double) -> Self
 pub fn Quaternion::identity() -> Self
 pub fn Quaternion::mul(Self, Self) -> Self
 pub fn Quaternion::norm(Self) -> Double
 pub fn Quaternion::normalize(Self) -> Self
+pub fn Quaternion::not_equal(Self, Self) -> Bool
 pub fn Quaternion::rotate_point(Self, Double, Double, Double) -> (Double, Double, Double)
 pub fn Quaternion::to_euler(Self) -> (Double, Double, Double)
+pub fn Quaternion::to_repr(Self) -> @debug.Repr
 
 pub struct RobotBuilder {
   _sealed : Unit
@@ -128,7 +149,10 @@ pub(all) struct RobotModel {
   sensors : Array[SensorSpec]
   limits : SafetyLimits
 } derive(Eq, @debug.Debug)
+pub fn RobotModel::equal(Self, Self) -> Bool
+pub fn RobotModel::not_equal(Self, Self) -> Bool
 pub fn RobotModel::to_info(Self, String, String) -> RobotModelInfo
+pub fn RobotModel::to_repr(Self) -> @debug.Repr
 
 pub(all) struct RobotModelInfo {
   name : String
@@ -136,24 +160,36 @@ pub(all) struct RobotModelInfo {
   dof : Int
   urdf_path : String
 } derive(Eq, @debug.Debug)
+pub fn RobotModelInfo::equal(Self, Self) -> Bool
+pub fn RobotModelInfo::not_equal(Self, Self) -> Bool
+pub fn RobotModelInfo::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SafetyLimits {
   max_joint_velocity : Double
   max_joint_effort : Double
   collision_check_distance : Double
 } derive(Eq, @debug.Debug)
+pub fn SafetyLimits::equal(Self, Self) -> Bool
+pub fn SafetyLimits::not_equal(Self, Self) -> Bool
+pub fn SafetyLimits::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SensorReading {
   kind : SensorType
   timestamp : Double
   data : Bytes
 } derive(Eq, @debug.Debug)
+pub fn SensorReading::equal(Self, Self) -> Bool
+pub fn SensorReading::not_equal(Self, Self) -> Bool
+pub fn SensorReading::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SensorSpec {
   name : String
   sensor_type : SensorType
   topic : String
 } derive(Eq, @debug.Debug)
+pub fn SensorSpec::equal(Self, Self) -> Bool
+pub fn SensorSpec::not_equal(Self, Self) -> Bool
+pub fn SensorSpec::to_repr(Self) -> @debug.Repr
 
 pub(all) enum SensorType {
   Camera
@@ -161,6 +197,9 @@ pub(all) enum SensorType {
   Imu
   JointEncoder
 } derive(Eq, @debug.Debug)
+pub fn SensorType::equal(Self, Self) -> Bool
+pub fn SensorType::not_equal(Self, Self) -> Bool
+pub fn SensorType::to_repr(Self) -> @debug.Repr
 
 pub struct Timer {
   mut elapsed_time : Double
@@ -185,9 +224,12 @@ pub(all) struct Transform {
 } derive(Eq, @debug.Debug)
 pub fn Transform::apply_point(Self, Double, Double, Double) -> (Double, Double, Double)
 pub fn Transform::compose(Self, Self) -> Self
+pub fn Transform::equal(Self, Self) -> Bool
 pub fn Transform::from_pose(Double, Double, Double, Double, Double, Double) -> Self
 pub fn Transform::identity() -> Self
 pub fn Transform::inverse(Self) -> Self
+pub fn Transform::not_equal(Self, Self) -> Bool
+pub fn Transform::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Twist {
   vx : Double
@@ -201,10 +243,13 @@ pub fn Twist::add(Self, Self) -> Self
 pub fn Twist::angular(Double, Double, Double) -> Self
 pub fn Twist::angular_norm(Self) -> Double
 pub fn Twist::dot_wrench(Self, Wrench) -> Double
+pub fn Twist::equal(Self, Self) -> Bool
 pub fn Twist::linear(Double, Double, Double) -> Self
 pub fn Twist::linear_norm(Self) -> Double
 pub fn Twist::new(Double, Double, Double, Double, Double, Double) -> Self
+pub fn Twist::not_equal(Self, Self) -> Bool
 pub fn Twist::scale(Self, Double) -> Self
+pub fn Twist::to_repr(Self) -> @debug.Repr
 pub fn Twist::zero() -> Self
 
 pub(all) struct Wrench {
@@ -216,10 +261,13 @@ pub(all) struct Wrench {
   tz : Double
 } derive(Eq, @debug.Debug)
 pub fn Wrench::add(Self, Self) -> Self
+pub fn Wrench::equal(Self, Self) -> Bool
 pub fn Wrench::force(Double, Double, Double) -> Self
 pub fn Wrench::force_norm(Self) -> Double
 pub fn Wrench::new(Double, Double, Double, Double, Double, Double) -> Self
+pub fn Wrench::not_equal(Self, Self) -> Bool
 pub fn Wrench::scale(Self, Double) -> Self
+pub fn Wrench::to_repr(Self) -> @debug.Repr
 pub fn Wrench::torque(Double, Double, Double) -> Self
 pub fn Wrench::torque_norm(Self) -> Double
 pub fn Wrench::zero() -> Self
@@ -232,4 +280,3 @@ pub(open) trait Robot {
   fn execute_actions(Self, Array[ActionCommand]) -> Unit raise RobotError
   fn get_model_info(Self) -> RobotModelInfo
 }
-

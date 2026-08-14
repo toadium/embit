@@ -217,7 +217,7 @@ pub fn full_stack_demo() -> Unit raise @core.RobotError {
     ("joint2", -0.3),
     ("joint3", 0.8),
   ]
-  let constraints : @control.TrajectoryConstraints = {
+  let constraints = @control.TrajectoryConstraints::{
     max_velocity: 1.5,
     max_acceleration: 4.0,
     time_step: 0.02,

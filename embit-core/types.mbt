@@ -10,6 +10,12 @@ pub(all) struct JointState {
 } derive(Eq, Debug)
 
 ///|
+pub extend JointState with Eq::{not_equal, equal}
+
+///|
+pub extend JointState with @debug.Debug::{to_repr}
+
+///|
 /// 传感器类型枚举。
 ///
 /// `JointEncoder` 表示关节编码器传感器，与结构体 `JointState` 区分命名。
@@ -19,6 +25,12 @@ pub(all) enum SensorType {
   Imu // 惯性测量单元
   JointEncoder // 关节编码器
 } derive(Eq, Debug)
+
+///|
+pub extend SensorType with Eq::{not_equal, equal}
+
+///|
+pub extend SensorType with @debug.Debug::{to_repr}
 
 ///|
 /// 传感器观测数据。
@@ -32,6 +44,12 @@ pub(all) struct SensorReading {
 } derive(Eq, Debug)
 
 ///|
+pub extend SensorReading with Eq::{not_equal, equal}
+
+///|
+pub extend SensorReading with @debug.Debug::{to_repr}
+
+///|
 /// 动作指令。
 ///
 /// `joint_commands` 为目标关节位置映射（关节名 → 目标角度），
@@ -40,3 +58,9 @@ pub(all) struct ActionCommand {
   joint_commands : Array[(String, Double)]
   timestamp : Double
 } derive(Eq, Debug)
+
+///|
+pub extend ActionCommand with Eq::{not_equal, equal}
+
+///|
+pub extend ActionCommand with @debug.Debug::{to_repr}

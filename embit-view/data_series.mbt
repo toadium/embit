@@ -6,6 +6,12 @@ pub(all) struct DataPoint {
 } derive(Eq, Debug)
 
 ///|
+pub extend DataPoint with Eq::{not_equal, equal}
+
+///|
+pub extend DataPoint with @debug.Debug::{to_repr}
+
+///|
 /// 实时时间序列：存储带时间戳的标量数据，用于可视化监控。
 ///
 /// 内部使用环形缓冲区，当数据点超过 `capacity` 时自动丢弃最旧的数据。

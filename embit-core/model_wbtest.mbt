@@ -6,7 +6,7 @@ test "JointType variants are distinct" {
 
 ///|
 test "JointSpec construction" {
-  let spec : JointSpec = {
+  let spec = JointSpec::{
     name: "shoulder",
     joint_type: Revolute,
     min_position: -3.14,
@@ -21,7 +21,7 @@ test "JointSpec construction" {
 
 ///|
 test "SensorSpec construction" {
-  let spec : SensorSpec = {
+  let spec = SensorSpec::{
     name: "camera0",
     sensor_type: Camera,
     topic: "/camera0/image",
@@ -33,7 +33,7 @@ test "SensorSpec construction" {
 
 ///|
 test "SafetyLimits construction" {
-  let limits : SafetyLimits = {
+  let limits = SafetyLimits::{
     max_joint_velocity: 2.0,
     max_joint_effort: 100.0,
     collision_check_distance: 0.01,
@@ -44,7 +44,7 @@ test "SafetyLimits construction" {
 
 ///|
 test "RobotModel construction" {
-  let model : RobotModel = {
+  let model = RobotModel::{
     urdf_path: "models/t800.urdf",
     joints: [
       {
@@ -70,7 +70,7 @@ test "RobotModel construction" {
 
 ///|
 test "RobotModelInfo construction" {
-  let info : RobotModelInfo = {
+  let info = RobotModelInfo::{
     name: "t800",
     version: "1.0",
     dof: 6,

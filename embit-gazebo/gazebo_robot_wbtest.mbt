@@ -4,7 +4,7 @@
 ///|
 /// connect 应创建已连接的 GazeboRobot。
 test "GazeboRobot - connect creates connected robot" {
-  let info : @core.RobotModelInfo = {
+  let info = @core.RobotModelInfo::{
     name: "humanoid",
     version: "1.0",
     dof: 12,
@@ -19,7 +19,7 @@ test "GazeboRobot - connect creates connected robot" {
 ///|
 /// get_model_info 应返回构造时绑定的信息。
 test "GazeboRobot - get_model_info" {
-  let info : @core.RobotModelInfo = {
+  let info = @core.RobotModelInfo::{
     name: "quadruped",
     version: "2.0",
     dof: 12,
@@ -36,7 +36,7 @@ test "GazeboRobot - get_model_info" {
 ///|
 /// get_sensor_readings 初始应为空。
 test "GazeboRobot - get_sensor_readings initial empty" {
-  let info : @core.RobotModelInfo = {
+  let info = @core.RobotModelInfo::{
     name: "arm",
     version: "1.0",
     dof: 6,
@@ -51,7 +51,7 @@ test "GazeboRobot - get_sensor_readings initial empty" {
 ///|
 /// update_sensors 应注入传感器读数。
 test "GazeboRobot - update_sensors injects readings" {
-  let info : @core.RobotModelInfo = {
+  let info = @core.RobotModelInfo::{
     name: "arm",
     version: "1.0",
     dof: 6,
@@ -71,7 +71,7 @@ test "GazeboRobot - update_sensors injects readings" {
 ///|
 /// execute_actions 应通过仿真客户端发布指令。
 test "GazeboRobot - execute_actions publishes to sim" {
-  let info : @core.RobotModelInfo = {
+  let info = @core.RobotModelInfo::{
     name: "arm",
     version: "1.0",
     dof: 6,
@@ -93,7 +93,7 @@ test "GazeboRobot - execute_actions publishes to sim" {
 /// from_client 从已有客户端创建。
 test "GazeboRobot - from_client" {
   let client = GazeboClient::connect("localhost:9005")
-  let info : @core.RobotModelInfo = {
+  let info = @core.RobotModelInfo::{
     name: "test",
     version: "1.0",
     dof: 1,

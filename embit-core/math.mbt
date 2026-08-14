@@ -11,6 +11,12 @@ pub(all) struct Quaternion {
 } derive(Eq, Debug)
 
 ///|
+pub extend Quaternion with Eq::{not_equal, equal}
+
+///|
+pub extend Quaternion with @debug.Debug::{to_repr}
+
+///|
 /// 单位四元数（无旋转）。
 pub fn Quaternion::identity() -> Quaternion {
   { w: 1.0, x: 0.0, y: 0.0, z: 0.0 }
@@ -115,6 +121,12 @@ pub(all) struct Transform {
   translation : (Double, Double, Double)
   rotation : Quaternion
 } derive(Eq, Debug)
+
+///|
+pub extend Transform with Eq::{not_equal, equal}
+
+///|
+pub extend Transform with @debug.Debug::{to_repr}
 
 ///|
 /// 单位变换（无平移无旋转）。

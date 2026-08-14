@@ -25,7 +25,7 @@ Embit 是基于 MoonBit 的通用具身智能机器人全栈开发框架，打�
 
 ### 环境要求
 
-- MoonBit 工具链 >= 0.1.20260713（`preferred_target = "native"`）
+- MoonBit 工具链 >= 0.1.20260807（`preferred_target = "native"`）
 - C 编译器（FFI native-stub 编译必需，Windows 下随 MoonBit 附带 TCC）
 - Ignition Gazebo Fortress / Harmonic（仿真模式）
 - （可选）支持 CUDA / Metal 的 GPU 设备
@@ -45,7 +45,7 @@ moon add walkzzz/embit/embit-examples
 
 ```moonbit
 /// 人形机器人行走 Demo：仿真 → VLA 推理 → 轨迹规划 → 执行 → 监控
-fn main() -> Unit raise @core.RobotError {
+fn main raise @core.RobotError {
   // 1. 连接仿真环境
   let sim = @gazebo.GazeboClient::connect("localhost:9000")
   // 2. 加载 VLA 模型（.gguf 格式）
@@ -68,7 +68,7 @@ fn main() -> Unit raise @core.RobotError {
 也可直接调用内置 Demo：
 
 ```moonbit
-fn main() -> Unit raise @core.RobotError {
+fn main raise @core.RobotError {
   @examples.humanoid_walk()           // 人形行走
   @examples.quadruped_avoid()         // 四足避障
   @examples.arm_grasp()               // 机械臂抓取
@@ -104,7 +104,7 @@ embit/
 │   ├── 02-技术文档.md
 │   ├── 03-品牌故事.md
 │   └── 04-性能基准报告.md
-├── moon.mod             # 模块元数据（walkzzz/embit v0.1.0, native target）
+├── moon.mod             # 模块元数据（walkzzz/embit v0.1.2, native target）
 ├── CONTRIBUTING.md      # 贡献指南
 ├── .github/             # CI/CD + Issue/PR 模板
 └── LICENSE

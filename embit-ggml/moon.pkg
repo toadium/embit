@@ -7,6 +7,7 @@ supported_targets = "native"
 import {
   "walkzzz/embit/embit-core" @core,
   "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/debug",
 }
 
 options(

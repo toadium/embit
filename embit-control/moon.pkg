@@ -8,4 +8,5 @@ import {
   "walkzzz/embit/embit-core" @core,
   "walkzzz/embit/embit-gazebo" @gazebo,
   "moonbitlang/core/math",
+  "moonbitlang/core/debug",
 }

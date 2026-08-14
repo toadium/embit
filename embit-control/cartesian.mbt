@@ -6,11 +6,23 @@ pub(all) struct CartesianWaypoint {
 } derive(Eq, Debug)
 
 ///|
+pub extend CartesianWaypoint with Eq::{not_equal, equal}
+
+///|
+pub extend CartesianWaypoint with @debug.Debug::{to_repr}
+
+///|
 /// 笛卡尔空间轨迹。
 pub(all) struct CartesianTrajectory {
   waypoints : Array[CartesianWaypoint]
   duration : Double
 } derive(Eq, Debug)
+
+///|
+pub extend CartesianTrajectory with Eq::{not_equal, equal}
+
+///|
+pub extend CartesianTrajectory with @debug.Debug::{to_repr}
 
 ///|
 /// 创建空笛卡尔轨迹。
@@ -76,7 +88,7 @@ pub fn[IK, FK] CartesianController::move_to(
   for step in 0..<=actual_steps {
     let alpha = step.to_double() / actual_steps.to_double()
     let t = duration * alpha
-    let pose : Pose = {
+    let pose = Pose::{
       position: (cx + dx * alpha, cy + dy * alpha, cz + dz * alpha),
       orientation: (
         cr + (tr - cr) * alpha,

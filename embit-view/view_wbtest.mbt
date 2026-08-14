@@ -121,7 +121,7 @@ test "PlaybackStream - progress calculation" {
 
 ///|
 test "ViewPanel - with_model sets model info" {
-  let info : @core.RobotModelInfo = {
+  let info = @core.RobotModelInfo::{
     name: "humanoid",
     version: "2.0",
     dof: 12,
@@ -225,7 +225,7 @@ test "ViewPanel - export_snapshot contains parameters" {
 ///|
 /// PlaybackStream 零帧时 progress 应返回 1.0。
 test "PlaybackStream - progress with zero frames" {
-  let ps : PlaybackStream = {
+  let ps = PlaybackStream::{
     session_id: "test",
     total_frames: 0,
     current_frame: 0,

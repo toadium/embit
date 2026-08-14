@@ -12,7 +12,7 @@
 ///|
 /// 轨迹规划基准：1000 次三次轨迹计算应正确完成。
 test "bench - trajectory computation 1000 iterations" {
-  let robot_model : @core.RobotModel = {
+  let robot_model = @core.RobotModel::{
     urdf_path: "",
     joints: [],
     sensors: [],
@@ -25,7 +25,7 @@ test "bench - trajectory computation 1000 iterations" {
   let ctrl = MotionController::new(robot_model)
   let start : Array[(String, Double)] = [("j1", 0.0), ("j2", 0.0)]
   let goal : Array[(String, Double)] = [("j1", 1.0), ("j2", 0.5)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 2.0,
     max_acceleration: 5.0,
     time_step: 0.01,
@@ -95,7 +95,7 @@ test "bench - IK/FK solve 1000 iterations" {
   let fk = SimpleFKSolver::new("ee_link")
   for i in 0..<1000 {
     let x = i.to_double() * 0.001
-    let pose : Pose = {
+    let pose = Pose::{
       position: (x, x * 0.5, x * 0.3),
       orientation: (0.0, 0.0, 0.0),
     }
@@ -163,7 +163,7 @@ test "bench - joint group large scale" {
 ///|
 /// 五次轨迹规划基准：500 次五次多项式轨迹计算。
 test "bench - quintic trajectory 500 iterations" {
-  let robot_model : @core.RobotModel = {
+  let robot_model = @core.RobotModel::{
     urdf_path: "",
     joints: [],
     sensors: [],
@@ -176,7 +176,7 @@ test "bench - quintic trajectory 500 iterations" {
   let ctrl = MotionController::new(robot_model)
   let start : Array[(String, Double)] = [("j1", 0.0)]
   let goal : Array[(String, Double)] = [("j1", 3.14)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 2.0,
     max_acceleration: 5.0,
     time_step: 0.02,
@@ -190,7 +190,7 @@ test "bench - quintic trajectory 500 iterations" {
 ///|
 /// 轨迹融合基准：1000 次轨迹拼接。
 test "bench - trajectory blend 1000 iterations" {
-  let robot_model : @core.RobotModel = {
+  let robot_model = @core.RobotModel::{
     urdf_path: "",
     joints: [],
     sensors: [],
@@ -204,7 +204,7 @@ test "bench - trajectory blend 1000 iterations" {
   let s1 : Array[(String, Double)] = [("j1", 0.0)]
   let g1 : Array[(String, Double)] = [("j1", 1.0)]
   let g2 : Array[(String, Double)] = [("j1", 2.0)]
-  let constraints : TrajectoryConstraints = {
+  let constraints = TrajectoryConstraints::{
     max_velocity: 2.0,
     max_acceleration: 5.0,
     time_step: 0.05,

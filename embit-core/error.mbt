@@ -19,3 +19,9 @@ pub(all) suberror RobotError {
   /// 参数配置无效（形状不匹配、值超出范围等）
   InvalidConfig(String)
 } derive(Eq, Debug)
+
+///|
+pub extend RobotError with Eq::{not_equal, equal}
+
+///|
+pub extend RobotError with @debug.Debug::{to_repr}
