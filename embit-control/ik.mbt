@@ -60,3 +60,150 @@ pub(open) trait FKSolver {
   /// 查询末端连杆名称。
   fn end_effector(Self) -> String
 }
+
+// ===== Phase 3.2: 人形腿逆运动学 =====
+
+///|
+/// 人形腿逆运动学解算器：2-DOF 平面解析解 + 6-DOF 姿态分解。
+///
+/// 针对人形机器人腿部 6 自由度结构（hip: yaw/roll/pitch, knee: pitch, ankle: pitch/roll），
+/// 提供解析逆运动学求解。核心为 2-DOF 平面解（hip pitch + knee pitch），
+/// 使用余弦定理求解，外层 4-DOF 通过姿态分解求解。
+pub struct LegIKSolver {
+  thigh_length : Double // 大腿长度（hip 到 knee，米）
+  shin_length : Double // 小腿长度（knee 到 ankle，米）
+  ankle_height : Double // 踝关节到脚底高度（米）
+}
+
+///|
+/// 创建人形腿 IK 解算器。
+///
+/// `thigh_length` 为大腿长度，`shin_length` 为小腿长度，
+/// `ankle_height` 为踝关节到脚底高度（默认 0）。
+pub fn LegIKSolver::new(
+  thigh_length : Double,
+  shin_length : Double,
+  ankle_height? : Double = 0.0,
+) -> LegIKSolver {
+  { thigh_length, shin_length, ankle_height }
+}
+
+///|
+/// 2-DOF 平面逆运动学：给定目标位置 (r, z)，求解 hip pitch 和 knee pitch。
+///
+/// 使用余弦定理：
+/// - `d² = r² + z²`
+/// - `cos(θ_knee) = (d² - L1² - L2²) / (2·L1·L2)`
+/// - `θ_knee = -acos(cos_knee)`（负值，膝盖向后弯曲）
+/// - `θ_hip = atan2(r, z) - atan2(L2·sin(θ_knee), L1 + L2·cos(θ_knee))`
+///
+/// 返回 `(hip_pitch, knee_pitch)`。目标不可达时抛出 `RobotError::UnsupportedRobotType`。
+pub fn LegIKSolver::solve_planar(
+  self : LegIKSolver,
+  r : Double,
+  z : Double,
+) -> (Double, Double) raise @core.RobotError {
+  let l1 = self.thigh_length
+  let l2 = self.shin_length
+  let d_sq = r * r + z * z
+  let d = d_sq.sqrt()
+  // 可达性检查
+  let max_reach = l1 + l2
+  let min_reach = (l1 - l2).abs()
+  if d > max_reach + 0.0001 {
+    raise UnsupportedRobotType(
+      "leg target unreachable: d=\{d} > L1+L2=\{max_reach}",
+    )
+  }
+  if d < min_reach - 0.0001 {
+    raise UnsupportedRobotType(
+      "leg target too close: d=\{d} < |L1-L2|=\{min_reach}",
+    )
+  }
+  // 余弦定理求膝盖角度
+  let cos_knee = (d_sq - l1 * l1 - l2 * l2) / (2.0 * l1 * l2)
+  // 钳位到 [-1, 1] 避免数值误差导致 acos 出 NaN
+  let cos_clamped = if cos_knee > 1.0 {
+    1.0
+  } else if cos_knee < -1.0 {
+    -1.0
+  } else {
+    cos_knee
+  }
+  let knee_pitch = -@math.acos(cos_clamped) // 负值：膝盖向后弯曲
+  // hip pitch
+  let sin_knee = @math.sin(knee_pitch)
+  let cos_k = @math.cos(knee_pitch)
+  let hip_pitch = @math.atan2(r, z) -
+    @math.atan2(l2 * sin_knee, l1 + l2 * cos_k)
+  (hip_pitch, knee_pitch)
+}
+
+///|
+/// 6-DOF 腿逆运动学：给定目标脚部位姿，求解 6 个关节角度。
+///
+/// 关节顺序：hip_yaw, hip_roll, hip_pitch, knee_pitch, ankle_pitch, ankle_roll。
+/// 求解策略：
+/// 1. hip_yaw = atan2(y, x)（指向目标方向）
+/// 2. 投影到矢状面：r = sqrt(x²+y²), z' = z - ankle_height
+/// 3. 2-DOF 平面解 → hip_pitch, knee_pitch
+/// 4. ankle_pitch = target_pitch - hip_pitch - knee_pitch
+/// 5. hip_roll = target_roll / 2, ankle_roll = target_roll / 2
+pub fn LegIKSolver::solve_6dof(
+  self : LegIKSolver,
+  target : Pose,
+) -> (Double, Double, Double, Double, Double, Double) raise @core.RobotError {
+  let (x, y, z) = target.position
+  let (roll, pitch, _) = target.orientation
+  // hip_yaw：指向目标方向
+  let hip_yaw = @math.atan2(y, x)
+  // 投影到矢状面
+  let r = (x * x + y * y).sqrt()
+  let z_eff = z - self.ankle_height
+  // 2-DOF 平面解
+  let (hip_pitch, knee_pitch) = self.solve_planar(r, z_eff)
+  // ankle_pitch：剩余角度
+  let ankle_pitch = pitch - hip_pitch - knee_pitch
+  // hip_roll / ankle_roll：均分目标 roll
+  let hip_roll = roll / 2.0
+  let ankle_roll = roll / 2.0
+  (hip_yaw, hip_roll, hip_pitch, knee_pitch, ankle_pitch, ankle_roll)
+}
+
+///|
+/// 将 6 个关节角度转为 JointState 数组。
+fn leg_angles_to_joint_states(
+  angles : (Double, Double, Double, Double, Double, Double),
+) -> Array[@core.JointState] {
+  let (j1, j2, j3, j4, j5, j6) = angles
+  [
+    { name: "hip_yaw", position: j1, velocity: 0.0, effort: 0.0 },
+    { name: "hip_roll", position: j2, velocity: 0.0, effort: 0.0 },
+    { name: "hip_pitch", position: j3, velocity: 0.0, effort: 0.0 },
+    { name: "knee_pitch", position: j4, velocity: 0.0, effort: 0.0 },
+    { name: "ankle_pitch", position: j5, velocity: 0.0, effort: 0.0 },
+    { name: "ankle_roll", position: j6, velocity: 0.0, effort: 0.0 },
+  ]
+}
+
+///|
+impl IKSolver for LegIKSolver with fn solve_ik(self, pose) {
+  let angles = self.solve_6dof(pose)
+  leg_angles_to_joint_states(angles)
+}
+
+///|
+impl IKSolver for LegIKSolver with fn solve_ik_with_seed(self, pose, _seed) -> Array[
+  @core.JointState,
+] raise @core.RobotError {
+  // 解析解不依赖种子
+  self.solve_ik(pose)
+}
+
+///|
+impl IKSolver for LegIKSolver with fn dof(_self) {
+  6
+}
+
+///|
+pub extend LegIKSolver with IKSolver::{solve_ik, solve_ik_with_seed, dof}

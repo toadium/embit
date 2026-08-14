@@ -140,6 +140,18 @@ pub fn KalmanFilter1D::step(Self, Double, Double) -> Unit
 pub fn KalmanFilter1D::update(Self, Double) -> Unit
 pub fn KalmanFilter1D::with_initial(Double, Double, Double, Double, Double) -> Self
 
+pub struct LegIKSolver {
+  thigh_length : Double
+  shin_length : Double
+  ankle_height : Double
+}
+pub fn LegIKSolver::dof(Self) -> Int
+pub fn LegIKSolver::new(Double, Double, ankle_height? : Double) -> Self
+pub fn LegIKSolver::solve_6dof(Self, Pose) -> (Double, Double, Double, Double, Double, Double) raise @embit-core.RobotError
+pub fn LegIKSolver::solve_ik(Self, Pose) -> Array[@embit-core.JointState] raise @embit-core.RobotError
+pub fn LegIKSolver::solve_ik_with_seed(Self, Pose, Array[@embit-core.JointState]) -> Array[@embit-core.JointState] raise @embit-core.RobotError
+pub fn LegIKSolver::solve_planar(Self, Double, Double) -> (Double, Double) raise @embit-core.RobotError
+
 pub struct MotionController {
   model : @embit-core.RobotModel
   estimator : StateEstimator
