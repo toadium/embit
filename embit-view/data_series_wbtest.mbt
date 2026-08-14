@@ -101,3 +101,29 @@ test "DataSeries - to_string" {
   assert_true(s.contains("joint_pos"))
   assert_true(s.contains("1"))
 }
+
+///|
+/// min 应找到多个数据点中的最小值。
+test "DataSeries - min with multiple points" {
+  let ds = DataSeries::new("test", 100)
+  ds.push(0.0, 3.0)
+  ds.push(0.1, 1.0)
+  ds.push(0.2, 2.0)
+  match ds.min() {
+    Some(m) => assert_eq(m, 1.0)
+    None => fail("expected Some(1.0)")
+  }
+}
+
+///|
+/// to_string 多个数据点应包含逗号分隔符。
+test "DataSeries - to_string multiple points" {
+  let ds = DataSeries::new("test", 100)
+  ds.push(0.0, 1.0)
+  ds.push(0.1, 2.0)
+  ds.push(0.2, 3.0)
+  let s = ds.to_string()
+  // 应包含逗号分隔符
+  assert_true(s.contains(","))
+  assert_true(s.contains("3"))
+}

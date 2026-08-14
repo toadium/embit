@@ -141,3 +141,15 @@ test "VlaModel - batch_infer empty inputs" {
   assert_eq(model.infer_count(), 0)
   model.free()
 }
+
+///|
+/// 标量张量但无数据时 to_scalar 应抛出错误。
+test "Tensor - to_scalar with empty data raises error" {
+  let t : Tensor = { shape: [], data: [] }
+  try t.to_scalar() catch {
+    InvalidConfig(msg) => assert_true(msg.contains("no data"))
+    _ => fail("unexpected RobotError variant")
+  } noraise {
+    _ => fail("expected InvalidConfig")
+  }
+}

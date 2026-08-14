@@ -85,11 +85,7 @@ pub fn MotionController::compute_trajectory(
   let steps = (duration / constraints.time_step).ceil().to_int()
   let actual_steps = if steps > 0 { steps } else { 1 }
   for step in 0..<=actual_steps {
-    let t = if actual_steps == 0 {
-      0.0
-    } else {
-      duration * step.to_double() / actual_steps.to_double()
-    }
+    let t = duration * step.to_double() / actual_steps.to_double()
     let alpha = if duration == 0.0 { 1.0 } else { t / duration }
     let positions : Array[(String, Double)] = []
     for i in 0..<start.length() {
@@ -147,11 +143,7 @@ pub fn MotionController::compute_trajectory_cubic(
   let steps = (duration / constraints.time_step).ceil().to_int()
   let actual_steps = if steps > 0 { steps } else { 1 }
   for step in 0..<=actual_steps {
-    let t = if actual_steps == 0 {
-      0.0
-    } else {
-      duration * step.to_double() / actual_steps.to_double()
-    }
+    let t = duration * step.to_double() / actual_steps.to_double()
     let positions : Array[(String, Double)] = []
     for i in 0..<start.length() {
       let (name, start_pos) = start[i]
@@ -203,11 +195,7 @@ pub fn MotionController::compute_trajectory_quintic(
   let steps = (duration / constraints.time_step).ceil().to_int()
   let actual_steps = if steps > 0 { steps } else { 1 }
   for step in 0..<=actual_steps {
-    let t = if actual_steps == 0 {
-      0.0
-    } else {
-      duration * step.to_double() / actual_steps.to_double()
-    }
+    let t = duration * step.to_double() / actual_steps.to_double()
     let positions : Array[(String, Double)] = []
     for i in 0..<start.length() {
       let (name, start_pos) = start[i]

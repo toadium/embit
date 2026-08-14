@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to semantic versioning.
 
+## [0.1.2] — 2026-08-14
+
+### Added — Phase 10 覆盖率治理与性能基准
+
+#### 测试覆盖（44 → 8 行未覆盖）
+- `control_wbtest.mbt`：+10 边缘测试（零速度 / 长度不匹配 / 零时长 / 安全检查空指令 / 时间戳相同 / 未知关节 / get_model）
+- `estimator_wbtest.mbt`：+4 测试（空观测 / 直通模式 / 速度观测 / 除零保护）
+- `fusion_wbtest.mbt`：+1 测试（dt=0 早返回）
+- `dh_kinematics_wbtest.mbt`：+4 测试（FK 角度不足 / IK 初始猜测不足 / 种子补零 / 空参数雅可比）
+- `simple_kinematics_wbtest.mbt`：新建 6 测试（SimpleIK/FK/Controller 全覆盖）
+- `math_wbtest.mbt`：+1 测试（万向锁 pitch=90°）
+- `spatial_wbtest.mbt`：+2 测试（Wrench::new / Wrench::scale）
+- `data_series_wbtest.mbt`：+2 测试（min 多点 / to_string 逗号分隔）
+- `view_wbtest.mbt`：+3 测试（零帧 progress / 未录制 stop / SensorDisplay+LogPanel 快照）
+- `tensor_wbtest.mbt`：+1 测试（空数据 to_scalar）
+- `examples_wbtest.mbt`：+1 测试（demo_skeleton）
+
+#### 死代码清理
+- `cartesian.mbt`：移除 `actual_steps == 0` 不可达分支
+- `control.mbt`：移除 3 处 `actual_steps == 0` 不可达分支（compute_trajectory / cubic / quintic）
+- `tokenizer.mbt`：移除 `hash < 0` 不可达检查（多项式滚动哈希恒非负）
+
+#### 性能基准
+- `bench_wbtest.mbt`：+4 基准（DH FK 1000 次 / DH IK 100 次 / Kalman 10000 次 / StateEstimator 5000 次）
+
+### 验证
+- `moon check --warn-list +unnecessary_annotation`：0 错误，0 警告
+- `moon test`：350 个测试全部通过
+- `moon coverage analyze`：8 行未覆盖（均为 FFI stub 恒返回 0 / try! abort / 阻尼正定不可达）
+- `moon fmt`：格式化通过
+
 ## [0.1.1] — 2026-08-14
 
 ### Added — Phase 8 算法实现

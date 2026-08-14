@@ -176,3 +176,30 @@ test "Twist - dot_wrench angular torque" {
   let w = Wrench::torque(0.0, 0.0, 5.0)
   assert_approx2(t.dot_wrench(w), 10.0)
 }
+
+// ===== Wrench 构造与运算覆盖测试 =====
+
+///|
+/// Wrench::new 创建带力和力矩的 Wrench。
+test "Wrench - new creates with force and torque" {
+  let w = Wrench::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+  assert_eq(w.fx, 1.0)
+  assert_eq(w.fy, 2.0)
+  assert_eq(w.fz, 3.0)
+  assert_eq(w.tx, 4.0)
+  assert_eq(w.ty, 5.0)
+  assert_eq(w.tz, 6.0)
+}
+
+///|
+/// Wrench::scale 标量乘法。
+test "Wrench - scale multiplies all components" {
+  let w = Wrench::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+  let s = w.scale(2.0)
+  assert_eq(s.fx, 2.0)
+  assert_eq(s.fy, 4.0)
+  assert_eq(s.fz, 6.0)
+  assert_eq(s.tx, 8.0)
+  assert_eq(s.ty, 10.0)
+  assert_eq(s.tz, 12.0)
+}

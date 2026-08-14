@@ -165,3 +165,52 @@ test "StateEstimator - update sensor readings" {
   est.update(readings)
   assert_eq(est.last_update(), 2.3)
 }
+
+// ===== 边缘 case 覆盖测试 =====
+
+///|
+/// update_joints 空观测数组应直接返回。
+test "StateEstimator - update_joints empty observed" {
+  let est = StateEstimator::new_kalman(0.001, 0.01, 0.1)
+  est.update_joints([], 0.01)
+  assert_eq(est.get_state().length(), 0)
+}
+
+///|
+/// update_joints 直通模式直接存储观测值。
+test "StateEstimator - update_joints passthrough mode" {
+  let est = StateEstimator::new()
+  let observed : Array[@core.JointState] = [
+    { name: "j1", position: 1.2, velocity: 0.5, effort: 0.0 },
+  ]
+  est.update_joints(observed, 0.01)
+  let state = est.get_state()
+  assert_eq(state.length(), 1)
+  assert_eq(state[0].name, "j1")
+  assert_eq(state[0].position, 1.2)
+}
+
+///|
+/// update_joints 卡尔曼模式用速度观测修正速度估计。
+test "StateEstimator - update_joints with velocity observation" {
+  let est = StateEstimator::new_kalman(0.001, 0.01, 0.1)
+  let observed : Array[@core.JointState] = [
+    { name: "j1", position: 0.0, velocity: 2.0, effort: 0.0 },
+  ]
+  est.update_joints(observed, 0.01)
+  let state = est.get_state()
+  assert_eq(state.length(), 1)
+  // 速度应被观测值修正（非零）
+  assert_true(state[0].velocity.abs() > 0.0)
+}
+
+///|
+/// 卡尔曼滤波器：s 接近零时 update 跳过除零保护。
+test "KalmanFilter1D - update with near-zero innovation covariance" {
+  // r = -1.0 使 s = p00(1.0) + r(-1.0) = 0.0，触发除零保护
+  let kf = KalmanFilter1D::new(0.001, 0.01, -1.0)
+  kf.update(1.0)
+  // 应不崩溃，状态保持初始值
+  assert_eq(kf.get_pos(), 0.0)
+  assert_eq(kf.get_vel(), 0.0)
+}

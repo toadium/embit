@@ -92,3 +92,14 @@ test "SensorFusion - lowpass_filter" {
   assert_true(filtered > 0.0)
   assert_true(filtered < 1.0)
 }
+
+///|
+/// dt <= 0 时 update 应直接返回不修改状态。
+test "SensorFusion - update with zero dt returns early" {
+  let sf = SensorFusion::new(0.98)
+  sf.update(10.0, 0.5, 0.0)
+  // dt=0 应跳过更新，状态保持初始值
+  assert_eq(sf.get_orientation(), 0.0)
+  assert_eq(sf.get_velocity(), 0.0)
+  assert_eq(sf.update_count(), 0)
+}

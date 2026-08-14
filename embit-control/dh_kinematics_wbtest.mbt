@@ -252,3 +252,59 @@ test "KalmanFilter1D - high measurement noise" {
   }
   assert_kf_approx(kf_high_r.get_pos(), 1.0)
 }
+
+// ===== 边缘 case 覆盖测试 =====
+
+///|
+/// DhFKSolver::fk 关节角度数不足应抛出错误。
+test "DhFKSolver - fk rejects mismatched angle count" {
+  let fk = DhFKSolver::arm_6dof()
+  try fk.fk([0.0, 0.0, 0.0]) catch {
+    InvalidConfig(msg) => assert_true(msg.contains("joint angles"))
+    _ => fail("unexpected RobotError variant")
+  } noraise {
+    _ => fail("expected InvalidConfig")
+  }
+}
+
+///|
+
+///|
+/// DhIKSolver::solve 初始猜测长度不足应抛出错误。
+test "DhIKSolver - solve rejects mismatched initial guess" {
+  let fk = DhFKSolver::arm_6dof()
+  let ik = DhIKSolver::new(fk)
+  let target = Pose::new(0.5, 0.0, 0.5, 0.0, 0.0, 0.0)
+  try ik.solve(target, [0.0, 0.0, 0.0]) catch {
+    InvalidConfig(msg) => assert_true(msg.contains("initial joint values"))
+    _ => fail("unexpected RobotError variant")
+  } noraise {
+    _ => fail("expected InvalidConfig")
+  }
+}
+
+///|
+/// DhIKSolver::solve_ik_with_seed 种子关节数少于参数数时应补零。
+test "DhIKSolver - solve_ik_with_seed with fewer seed joints" {
+  let fk = DhFKSolver::arm_6dof()
+  let ik = DhIKSolver::new(fk)
+  let target = Pose::new(0.5, 0.0, 0.5, 0.0, 0.0, 0.0)
+  // 只提供 3 个种子关节（少于 6 个参数），应自动补零
+  let seed : Array[@core.JointState] = [
+    { name: "j1", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "j2", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "j3", position: 0.0, velocity: 0.0, effort: 0.0 },
+  ]
+  let result = ik.solve_ik_with_seed(target, seed)
+  assert_eq(result.length(), 6)
+}
+
+///|
+/// DhIKSolver 空 DH 参数时求解应安全处理空雅可比。
+test "DhIKSolver - solve with zero params handles empty jacobian" {
+  let fk = DhFKSolver::new([], "ee")
+  let ik = DhIKSolver::new(fk, max_iter=3)
+  let target = Pose::new(1.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+  let result = ik.solve(target, [])
+  assert_eq(result.length(), 0)
+}

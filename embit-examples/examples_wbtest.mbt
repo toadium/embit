@@ -262,3 +262,9 @@ test "integration - CartesianController pipeline" {
 test "integration - full_stack_demo runs successfully" {
   full_stack_demo()
 }
+
+///|
+/// 示例工程占位入口应完整执行无异常。
+test "integration - demo_skeleton runs successfully" {
+  demo_skeleton()
+}

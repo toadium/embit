@@ -86,9 +86,7 @@ fn Tokenizer::hash_token(self : Tokenizer, token : String) -> Int {
   for ch in token {
     hash = (hash * 31 + ch.to_int()) % 1000000
   }
-  if hash < 0 {
-    hash = -hash
-  }
+
   hash % self.vocab_size
 }
 

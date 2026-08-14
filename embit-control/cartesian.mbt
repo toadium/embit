@@ -74,11 +74,7 @@ pub fn[IK, FK] CartesianController::move_to(
   let steps = (duration / time_step).ceil().to_int()
   let actual_steps = if steps > 0 { steps } else { 1 }
   for step in 0..<=actual_steps {
-    let alpha = if actual_steps == 0 {
-      1.0
-    } else {
-      step.to_double() / actual_steps.to_double()
-    }
+    let alpha = step.to_double() / actual_steps.to_double()
     let t = duration * alpha
     let pose : Pose = {
       position: (cx + dx * alpha, cy + dy * alpha, cz + dz * alpha),

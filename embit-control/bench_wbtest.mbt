@@ -216,3 +216,61 @@ test "bench - trajectory blend 1000 iterations" {
     assert_true(blended.length() > 0)
   }
 }
+
+// ===== DH 运动学 & 卡尔曼滤波性能基准 =====
+
+///|
+/// DH 正运动学基准：1000 次 6-DOF FK 解算。
+test "bench - DH forward kinematics 1000 iterations" {
+  let fk = DhFKSolver::arm_6dof()
+  let angles : Array[Double] = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+  for _ in 0..<1000 {
+    let tf = fk.fk(angles)
+    let (x, _, _) = tf.translation
+    assert_true(x.abs() < 10.0)
+  }
+}
+
+///|
+/// DH 逆运动学基准：100 次 6-DOF IK 迭代求解。
+test "bench - DH inverse kinematics 100 iterations" {
+  let fk = DhFKSolver::arm_6dof()
+  let ik = DhIKSolver::new(fk)
+  let target = Pose::new(0.5, 0.1, 0.3, 0.0, 1.57, 0.0)
+  for _ in 0..<100 {
+    let q = ik.solve(target, [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    assert_eq(q.length(), 6)
+  }
+}
+
+///|
+/// 卡尔曼滤波基准：10000 次 predict + update 循环。
+test "bench - Kalman filter 10000 iterations" {
+  let kf = KalmanFilter1D::new(0.001, 0.01, 0.1)
+  let dt = 0.01
+  let mut true_pos = 0.0
+  let true_vel = 2.0
+  for _ in 0..<10000 {
+    true_pos = true_pos + true_vel * dt
+    kf.step(true_pos, dt)
+  }
+  // 滤波后应跟踪真实位置
+  assert_true((kf.get_pos() - true_pos).abs() < 0.1)
+  assert_true((kf.get_vel() - true_vel).abs() < 0.1)
+}
+
+///|
+/// 状态估计器卡尔曼模式基准：5000 次多关节滤波。
+test "bench - StateEstimator kalman 5000 iterations" {
+  let est = StateEstimator::new_kalman(0.001, 0.01, 0.1)
+  for _ in 0..<5000 {
+    let observed : Array[@core.JointState] = [
+      { name: "j1", position: 1.0, velocity: 0.5, effort: 0.0 },
+      { name: "j2", position: -0.5, velocity: 0.3, effort: 0.0 },
+      { name: "j3", position: 0.8, velocity: -0.2, effort: 0.0 },
+    ]
+    est.update_joints(observed, 0.01)
+  }
+  let state = est.get_state()
+  assert_eq(state.length(), 3)
+}

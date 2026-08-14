@@ -222,3 +222,15 @@ test "Transform - apply_point yaw 90deg no translation" {
   assert_approx(ry, 1.0)
   assert_approx(rz, 0.0)
 }
+
+///|
+/// 万向锁：pitch = 90° 时 to_euler 应走 gimbal lock 分支。
+test "Quaternion - to_euler gimbal lock at pitch 90deg" {
+  // pitch = π/2 → sinp = 1.0，触发万向锁分支
+  let q = Quaternion::from_euler(0.0, pi * 0.5, 0.0)
+  let (_, pitch, _) = q.to_euler()
+  // pitch 应为 ±π/2
+  assert_true(
+    (pitch - pi * 0.5).abs() < 0.001 || (pitch + pi * 0.5).abs() < 0.001,
+  )
+}

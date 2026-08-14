@@ -219,3 +219,42 @@ test "ViewPanel - export_snapshot contains parameters" {
   assert_true(snapshot.contains("kp"))
   assert_true(snapshot.contains("100"))
 }
+
+// ===== 边缘 case 覆盖测试 =====
+
+///|
+/// PlaybackStream 零帧时 progress 应返回 1.0。
+test "PlaybackStream - progress with zero frames" {
+  let ps : PlaybackStream = {
+    session_id: "test",
+    total_frames: 0,
+    current_frame: 0,
+  }
+  assert_eq(ps.progress(), 1.0)
+}
+
+///|
+/// stop_recording 未开始录制时应安全无操作。
+test "ViewPanel - stop_recording without active recording" {
+  let panel = ViewPanel::new()
+  // 未开始录制，应安全无操作
+  panel.stop_recording()
+  assert_eq(panel.widget_count(), 0)
+}
+
+///|
+/// export_snapshot 包含 SensorDisplay 和 LogPanel 类型。
+test "ViewPanel - export_snapshot with sensor and log widgets" {
+  let panel = ViewPanel::new()
+  panel.add_widget({
+    widget_type: SensorDisplay,
+    title: "IMU Display",
+    topic: "/imu",
+  })
+  panel.add_widget({ widget_type: LogPanel, title: "Debug Log", topic: "/log" })
+  let snapshot = panel.export_snapshot()
+  assert_true(snapshot.contains("SensorDisplay"))
+  assert_true(snapshot.contains("LogPanel"))
+  assert_true(snapshot.contains("IMU Display"))
+  assert_true(snapshot.contains("Debug Log"))
+}

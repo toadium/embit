@@ -468,3 +468,155 @@ test "Trajectory - blend empty trajectory raises error" {
     _ => fail("expected InvalidConfig")
   }
 }
+
+// ===== 边缘 case 覆盖测试 =====
+
+///|
+/// max_velocity=0 时 compute_duration 回退到 time_step。
+test "MotionController - compute_trajectory with zero max_velocity" {
+  let model = make_test_model()
+  let ctrl = MotionController::new(model)
+  let start : Array[(String, Double)] = [("j1", 0.0)]
+  let goal : Array[(String, Double)] = [("j1", 1.0)]
+  let constraints : TrajectoryConstraints = {
+    max_velocity: 0.0,
+    max_acceleration: 5.0,
+    time_step: 0.1,
+  }
+  let traj = ctrl.compute_trajectory(start, goal, constraints)
+  // duration = time_step = 0.1, steps = 1, waypoints = 2
+  assert_eq(traj.duration, 0.1)
+  assert_true(traj.length() >= 2)
+}
+
+///|
+/// 三次多项式轨迹拒绝长度不匹配。
+test "MotionController - cubic rejects mismatched lengths" {
+  let model = make_test_model()
+  let ctrl = MotionController::new(model)
+  let constraints : TrajectoryConstraints = {
+    max_velocity: 1.0,
+    max_acceleration: 5.0,
+    time_step: 0.1,
+  }
+  try ctrl.compute_trajectory_cubic([("j1", 0.0)], [], constraints) catch {
+    SafetyLimitViolation(msg) => assert_true(msg.contains("same number"))
+    _ => fail("unexpected RobotError variant")
+  } noraise {
+    _ => fail("expected SafetyLimitViolation")
+  }
+}
+
+///|
+/// 三次多项式轨迹起止相同时 duration=0。
+test "MotionController - cubic zero duration same start goal" {
+  let model = make_test_model()
+  let ctrl = MotionController::new(model)
+  let start : Array[(String, Double)] = [("j1", 0.5)]
+  let goal : Array[(String, Double)] = [("j1", 0.5)]
+  let constraints : TrajectoryConstraints = {
+    max_velocity: 1.0,
+    max_acceleration: 5.0,
+    time_step: 0.1,
+  }
+  let traj = ctrl.compute_trajectory_cubic(start, goal, constraints)
+  assert_eq(traj.duration, 0.0)
+  // 所有点位置应为 0.5
+  for wp in traj.waypoints {
+    let (_, pos) = wp.positions[0]
+    assert_true((pos - 0.5).abs() < eps)
+  }
+}
+
+///|
+/// 五次多项式轨迹拒绝长度不匹配。
+test "MotionController - quintic rejects mismatched lengths" {
+  let model = make_test_model()
+  let ctrl = MotionController::new(model)
+  let constraints : TrajectoryConstraints = {
+    max_velocity: 1.0,
+    max_acceleration: 5.0,
+    time_step: 0.1,
+  }
+  try ctrl.compute_trajectory_quintic([("j1", 0.0)], [], constraints) catch {
+    SafetyLimitViolation(msg) => assert_true(msg.contains("same number"))
+    _ => fail("unexpected RobotError variant")
+  } noraise {
+    _ => fail("expected SafetyLimitViolation")
+  }
+}
+
+///|
+/// 五次多项式轨迹起止相同时 duration=0。
+test "MotionController - quintic zero duration same start goal" {
+  let model = make_test_model()
+  let ctrl = MotionController::new(model)
+  let start : Array[(String, Double)] = [("j1", 0.3)]
+  let goal : Array[(String, Double)] = [("j1", 0.3)]
+  let constraints : TrajectoryConstraints = {
+    max_velocity: 1.0,
+    max_acceleration: 5.0,
+    time_step: 0.1,
+  }
+  let traj = ctrl.compute_trajectory_quintic(start, goal, constraints)
+  assert_eq(traj.duration, 0.0)
+  for wp in traj.waypoints {
+    let (_, pos) = wp.positions[0]
+    assert_true((pos - 0.3).abs() < eps)
+  }
+}
+
+///|
+/// check_safety 少于 2 条指令时直接通过。
+test "MotionController - check_safety single command passes" {
+  let model = make_test_model()
+  let ctrl = MotionController::new(model)
+  let commands : Array[@core.ActionCommand] = [
+    { joint_commands: [("j1", 0.0)], timestamp: 0.0 },
+  ]
+  ctrl.check_safety(commands)
+}
+
+///|
+/// check_safety 空指令列表直接通过。
+test "MotionController - check_safety empty commands passes" {
+  let model = make_test_model()
+  let ctrl = MotionController::new(model)
+  ctrl.check_safety([])
+}
+
+///|
+/// check_safety 相邻指令时间戳相同时跳过速度检查。
+test "MotionController - check_safety same timestamp skips check" {
+  let model = make_test_model()
+  let ctrl = MotionController::new(model)
+  // 两条指令时间戳相同，dt=0，应跳过检查不报错
+  let commands : Array[@core.ActionCommand] = [
+    { joint_commands: [("j1", 0.0)], timestamp: 1.0 },
+    { joint_commands: [("j1", 100.0)], timestamp: 1.0 },
+  ]
+  ctrl.check_safety(commands)
+}
+
+///|
+/// check_safety 前后指令关节名不同时跳过该关节。
+test "MotionController - check_safety unknown joint skips" {
+  let model = make_test_model()
+  let ctrl = MotionController::new(model)
+  // 第二条指令的关节名在第一条中不存在，应跳过不报错
+  let commands : Array[@core.ActionCommand] = [
+    { joint_commands: [("j1", 0.0)], timestamp: 0.0 },
+    { joint_commands: [("j2", 100.0)], timestamp: 0.1 },
+  ]
+  ctrl.check_safety(commands)
+}
+
+///|
+/// get_model 返回控制器持有的模型。
+test "MotionController - get_model returns model" {
+  let model = make_test_model()
+  let ctrl = MotionController::new(model)
+  let got = ctrl.get_model()
+  assert_eq(got.limits.max_joint_velocity, 1.0)
+  assert_eq(got.limits.max_joint_effort, 10.0)
+}
