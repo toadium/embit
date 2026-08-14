@@ -28,7 +28,7 @@ jobs:
           curl -fsSL https://cli.moonbitlang.com/install/powershell.ps1 -o install.ps1
           .\install.ps1
           Add-Content -Path $env:GITHUB_PATH -Value "$env:USERPROFILE\.moon\bin"
-      - name: Check (strict: all warnings denied)
+      - name: "Check (strict: all warnings denied)"
         run: moon check --warn-list +all --deny-warn
 
   test:
