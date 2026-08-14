@@ -43,6 +43,7 @@ pub struct GazeboRobot {
   client : GazeboClient
   model_info : @embit-core.RobotModelInfo
   mut sensor_readings : Array[@embit-core.SensorReading]
+  sensor_subscriptions : Array[(String, @embit-core.SensorType)]
 }
 pub fn GazeboRobot::client(Self) -> GazeboClient
 pub fn GazeboRobot::connect(String, @embit-core.RobotModelInfo) -> Self
@@ -52,6 +53,9 @@ pub fn GazeboRobot::from_client(GazeboClient, @embit-core.RobotModelInfo) -> Sel
 pub fn GazeboRobot::get_model_info(Self) -> @embit-core.RobotModelInfo
 pub fn GazeboRobot::get_sensor_readings(Self) -> Array[@embit-core.SensorReading]
 pub fn GazeboRobot::is_connected(Self) -> Bool
+pub fn GazeboRobot::poll_sensors(Self, Double) -> Unit
+pub fn GazeboRobot::register_sensor(Self, String, @embit-core.SensorType) -> Unit raise @embit-core.RobotError
+pub fn GazeboRobot::sensor_count(Self) -> Int
 pub fn GazeboRobot::update_sensors(Self, Array[@embit-core.SensorReading]) -> Unit
 
 type IgnitionNode

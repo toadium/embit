@@ -103,3 +103,66 @@ test "GazeboRobot - from_client" {
   assert_true(robot.is_connected())
   robot.disconnect()
 }
+
+///|
+/// register_sensor 注册传感器话题并订阅。
+test "GazeboRobot - register_sensor subscribes topic" {
+  let info = @core.RobotModelInfo::{
+    name: "humanoid",
+    version: "1.0",
+    dof: 12,
+    urdf_path: "",
+  }
+  let robot = GazeboRobot::connect("localhost:9006", info)
+  robot.register_sensor("/imu", Imu)
+  robot.register_sensor("/camera", Camera)
+  robot.register_sensor("/joint_states", JointEncoder)
+  // 3 个传感器已注册
+  assert_eq(robot.sensor_count(), 3)
+  // 客户端应有 3 个订阅
+  assert_eq(robot.client().subscription_count(), 3)
+  robot.disconnect()
+}
+
+///|
+/// poll_sensors 从已注册话题生成传感器读数。
+test "GazeboRobot - poll_sensors generates readings" {
+  let info = @core.RobotModelInfo::{
+    name: "humanoid",
+    version: "1.0",
+    dof: 12,
+    urdf_path: "",
+  }
+  let robot = GazeboRobot::connect("localhost:9007", info)
+  robot.register_sensor("/imu", Imu)
+  robot.register_sensor("/camera", Camera)
+  // 初始无读数
+  assert_eq(robot.get_sensor_readings().length(), 0)
+  // 轮询后生成读数
+  robot.poll_sensors(1.5)
+  let readings = robot.get_sensor_readings()
+  assert_eq(readings.length(), 2)
+  // 读数类型正确
+  assert_eq(readings[0].kind, Imu)
+  assert_eq(readings[1].kind, Camera)
+  // 时间戳正确
+  assert_true((readings[0].timestamp - 1.5).abs() < 0.001)
+  // 数据为话题名编码
+  assert_eq(readings[0].data, @utf8.encode("/imu"))
+  robot.disconnect()
+}
+
+///|
+/// poll_sensors 无注册话题时生成空读数。
+test "GazeboRobot - poll_sensors no subscriptions" {
+  let info = @core.RobotModelInfo::{
+    name: "arm",
+    version: "1.0",
+    dof: 6,
+    urdf_path: "",
+  }
+  let robot = GazeboRobot::connect("localhost:9008", info)
+  robot.poll_sensors(0.0)
+  assert_eq(robot.get_sensor_readings().length(), 0)
+  robot.disconnect()
+}
