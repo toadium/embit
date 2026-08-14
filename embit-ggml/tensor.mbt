@@ -127,7 +127,7 @@ pub fn Tensor::scale(self : Tensor, s : Double) -> Tensor {
 /// 批量推理：对多组图像 + 指令执行推理。
 ///
 /// `inputs` 为 `(image, instruction)` 元组数组。
-/// 返回每组推理结果（空数组占位）。任一推理失败时抛出 `RobotError::ActionExecuteError`。
+/// 返回每组推理结果（基于指令解析的动作序列）。任一推理失败时抛出 `RobotError::ActionExecuteError`。
 pub fn VlaModel::batch_infer(
   self : VlaModel,
   inputs : Array[(Bytes, String)],

@@ -73,12 +73,12 @@ test "Tokenizer - encode ids within vocab range" {
 }
 
 ///|
-/// decode 返回占位字符串。
-test "Tokenizer - decode returns placeholder" {
+/// decode 词表内 ID 返回真实文本。
+test "Tokenizer - decode returns real text" {
   let tok = Tokenizer::default()
-  let result = tok.decode([1, 2, 3])
-  assert_true(result.contains("decoded"))
-  assert_true(result.contains("3"))
+  // ID 4="pick", 5="up", 6="the"
+  let result = tok.decode([4, 5, 6])
+  assert_eq(result, "pick up the")
 }
 
 ///|
@@ -86,6 +86,56 @@ test "Tokenizer - decode returns placeholder" {
 test "Tokenizer - decode empty returns empty string" {
   let tok = Tokenizer::default()
   assert_eq(tok.decode([]), "")
+}
+
+///|
+/// decode 词表外 ID 返回 "<unk>"。
+test "Tokenizer - decode out-of-vocab returns unk" {
+  let tok = Tokenizer::new(100)
+  // ID 99 在词表外（词表仅 82 词），应返回 "<unk>"
+  let result = tok.decode([99])
+  assert_eq(result, "<unk>")
+}
+
+///|
+/// encode → decode 往返一致（词表内单词）。
+test "Tokenizer - encode decode roundtrip" {
+  let tok = Tokenizer::default()
+  let text = "pick up the red block"
+  let ids = tok.encode(text)
+  let decoded = tok.decode(ids)
+  assert_eq(decoded, text)
+}
+
+///|
+/// encode → decode 往返一致（多词句）。
+test "Tokenizer - encode decode roundtrip multi" {
+  let tok = Tokenizer::default()
+  let text = "move to the table walk forward turn left"
+  let ids = tok.encode(text)
+  let decoded = tok.decode(ids)
+  assert_eq(decoded, text)
+}
+
+///|
+/// encode 一致性：相同单词始终映射到相同 ID。
+test "Tokenizer - encode consistency" {
+  let tok = Tokenizer::new(1000)
+  let ids1 = tok.encode("pick up")
+  let ids2 = tok.encode("pick up")
+  assert_eq(ids1[0], ids2[0])
+  assert_eq(ids1[1], ids2[1])
+}
+
+///|
+/// with_vocab 使用自定义词表创建分词器。
+test "Tokenizer - with_vocab custom" {
+  let tok = Tokenizer::with_vocab(["<pad>", "hello", "world"])
+  assert_eq(tok.get_vocab_size(), 3)
+  let ids = tok.encode("hello world")
+  assert_eq(ids[0], 1)
+  assert_eq(ids[1], 2)
+  assert_eq(tok.decode(ids), "hello world")
 }
 
 ///|

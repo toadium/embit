@@ -24,6 +24,30 @@ test "GazeboClient - publish increments topic_count" {
 }
 
 ///|
+/// last_publish_topic 应返回最近发布的话题名。
+test "GazeboClient - last_publish_topic tracks topic" {
+  let client = GazeboClient::connect("localhost:9000")
+  assert_eq(client.last_publish_topic(), "")
+  client.publish("/cmd_vel", b"data1")
+  assert_eq(client.last_publish_topic(), "/cmd_vel")
+  client.publish("/joint_states", b"data2")
+  assert_eq(client.last_publish_topic(), "/joint_states")
+  client.disconnect()
+}
+
+///|
+/// last_service 应返回最近调用的服务名。
+test "GazeboClient - last_service tracks service" {
+  let client = GazeboClient::connect("localhost:9000")
+  assert_eq(client.last_service(), "")
+  client.service_call("/world/control", b"pause")
+  assert_eq(client.last_service(), "/world/control")
+  client.service_call("/model/spawn", b"robot1")
+  assert_eq(client.last_service(), "/model/spawn")
+  client.disconnect()
+}
+
+///|
 /// 断开后 is_connected 应返回 false。
 test "GazeboClient - disconnect sets is_connected false" {
   let client = GazeboClient::connect("localhost:9000")

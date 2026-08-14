@@ -33,7 +33,7 @@ test "integration - full pipeline data flow" {
   let model = @ggml.VlaModel::load("models/test.gguf")
   assert_true(model.is_loaded())
   let actions = model.infer(b"test_image", "test instruction")
-  assert_eq(actions.length(), 0) // 占位返回空数组
+  assert_true(actions.length() > 0) // 指令解析生成非空动作序列
   assert_eq(model.infer_count(), 1)
 
   // 3. 运动控制器与轨迹规划

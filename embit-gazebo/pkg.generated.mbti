@@ -12,12 +12,16 @@ import {
 // Types and methods
 pub struct GazeboClient {
   node : IgnitionNode
+  mut last_publish_topic : String
+  mut last_service : String
 }
 pub fn GazeboClient::connect(String) -> Self
 pub fn GazeboClient::disconnect(Self) -> Unit
 pub fn GazeboClient::get_gravity_z(Self) -> Double
 pub fn GazeboClient::is_connected(Self) -> Bool
 pub fn GazeboClient::is_paused(Self) -> Bool
+pub fn GazeboClient::last_publish_topic(Self) -> String
+pub fn GazeboClient::last_service(Self) -> String
 pub fn GazeboClient::model_count(Self) -> Int
 pub fn GazeboClient::pause(Self) -> Unit raise @embit-core.RobotError
 pub fn GazeboClient::publish(Self, String, Bytes) -> Unit raise @embit-core.RobotError

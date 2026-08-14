@@ -105,16 +105,19 @@ test "Tensor - shape_size" {
 // ===== 批量推理测试 =====
 
 ///|
-/// batch_infer 应对每组输入执行推理并递增计数。
+/// batch_infer 应对每组输入执行推理并递增计数，返回非空动作序列。
 test "VlaModel - batch_infer processes all inputs" {
   let model = VlaModel::load("models/smolvla-7b-q4.gguf")
   let inputs : Array[(Bytes, String)] = [
-    (b"img1", "task1"),
-    (b"img2", "task2"),
-    (b"img3", "task3"),
+    (b"img1", "pick up the block"),
+    (b"img2", "move to the table"),
+    (b"img3", "walk forward"),
   ]
   let results = model.batch_infer(inputs)
   assert_eq(results.length(), 3)
+  for result in results {
+    assert_true(result.length() > 0)
+  }
   assert_eq(model.infer_count(), 3)
   model.free()
 }

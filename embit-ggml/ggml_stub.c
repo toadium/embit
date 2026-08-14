@@ -1,7 +1,8 @@
-// ggml_stub.c — Embit ggml FFI 桥接（Phase 1 占位实现）
+// ggml_stub.c — Embit ggml FFI 桥接（功能化占位实现）
 //
 // 当前为自包含占位实现，不依赖 ggml/vla.cpp C 库。
-// Phase 1 后续将替换为真实 ggml 推理调用：
+// 推理调用仅记录状态，动作序列由 MoonBit 侧 parse_instruction_to_actions 生成。
+// 后续将替换为真实 ggml 推理调用：
 //   - ggml_init / ggml_free
 //   - ggml_model_load / ggml_model_infer
 //

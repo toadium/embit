@@ -2,19 +2,21 @@
 /// 仿真环境客户端，封装 Ignition Transport 话题通信。
 ///
 /// 通过 FFI 绑定 Ignition Transport C API，提供话题发布/订阅与服务调用。
-/// 当前为 Phase 1 占位实现，后续替换为真实仿真通信。
+/// 当前为功能化占位实现，MoonBit 侧跟踪最近发布的消息与服务调用，用于集成测试验证。
 pub struct GazeboClient {
   node : IgnitionNode
+  mut last_publish_topic : String // 最近发布的话题名
+  mut last_service : String // 最近调用的服务名
 }
 
 ///|
 /// 连接仿真环境。
 ///
 /// `address` 格式为 `host:port`，如 `"localhost:9000"`。
-/// Phase 1 占位实现始终连接成功；真实实现失败时抛出 `RobotError::ConnectError`。
+/// 占位实现始终连接成功；真实实现失败时抛出 `RobotError::ConnectError`。
 pub fn GazeboClient::connect(address : String) -> GazeboClient {
   let node = embit_gazebo_connect(@utf8.encode(address))
-  { node, }
+  { node, last_publish_topic: "", last_service: "" }
 }
 
 ///|
@@ -31,6 +33,13 @@ pub fn GazeboClient::publish(
   if status < 0 {
     raise ActionExecuteError("gazebo publish failed: node not connected")
   }
+  self.last_publish_topic = topic
+}
+
+///|
+/// 查询最近发布的话题名。
+pub fn GazeboClient::last_publish_topic(self : GazeboClient) -> String {
+  self.last_publish_topic
 }
 
 ///|
@@ -40,7 +49,7 @@ pub fn GazeboClient::is_connected(self : GazeboClient) -> Bool {
 }
 
 ///|
-/// 获取已操作话题计数（占位统计，用于测试验证 FFI 通道）。
+/// 获取已操作话题计数（用于测试验证 FFI 通道）。
 pub fn GazeboClient::topic_count(self : GazeboClient) -> Int {
   embit_gazebo_topic_count(self.node)
 }
@@ -105,10 +114,17 @@ pub fn GazeboClient::service_call(
   if status < 0 {
     raise ActionExecuteError("gazebo service_call failed: node not connected")
   }
+  self.last_service = service
 }
 
 ///|
-/// 获取服务调用计数（占位统计，用于测试验证）。
+/// 查询最近调用的服务名。
+pub fn GazeboClient::last_service(self : GazeboClient) -> String {
+  self.last_service
+}
+
+///|
+/// 获取服务调用计数（用于测试验证）。
 pub fn GazeboClient::service_call_count(self : GazeboClient) -> Int {
   embit_gazebo_service_call_count(self.node)
 }
@@ -198,7 +214,7 @@ pub fn GazeboClient::get_gravity_z(self : GazeboClient) -> Double {
 }
 
 ///|
-/// 获取世界控制操作计数（占位统计，用于测试验证）。
+/// 获取世界控制操作计数（用于测试验证）。
 pub fn GazeboClient::world_control_count(self : GazeboClient) -> Int {
   embit_gazebo_world_control_count(self.node)
 }

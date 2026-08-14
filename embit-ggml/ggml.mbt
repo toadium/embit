@@ -20,7 +20,7 @@ pub extend Backend with @debug.Debug::{to_repr}
 /// VLA（Vision-Language-Action）模型，封装多模态推理能力。
 ///
 /// 通过 FFI 绑定 ggml/vla.cpp，支持图像 + 语言指令 → 动作序列推理。
-/// 当前为 Phase 1 占位实现，后续替换为真实 ggml 推理调用。
+/// 当前使用功能化占位实现，通过指令解析生成动作序列。
 pub struct VlaModel {
   ctx : GgmlContext
   model_path : String
@@ -30,7 +30,7 @@ pub struct VlaModel {
 /// 加载 VLA 模型。
 ///
 /// `path` 指向 `.gguf` 模型文件。加载成功后默认使用 CPU 后端。
-/// Phase 1 占位实现始终加载成功；真实实现失败时抛出 `RobotError::ConnectError`。
+/// 占位实现始终加载成功；真实实现失败时抛出 `RobotError::ConnectError`。
 pub fn VlaModel::load(path : String) -> VlaModel {
   let ctx = embit_ggml_load(@utf8.encode(path))
   { ctx, model_path: path }
@@ -74,7 +74,7 @@ pub fn InferConfig::new(
 /// 执行多模态推理：图像 + 语言指令 → 动作序列。
 ///
 /// `image` 为原始图像字节流，`instruction` 为自然语言指令。
-/// 返回占位动作序列（空数组）。失败时抛出 `RobotError::ActionExecuteError`。
+/// 返回基于指令解析生成的动作序列。失败时抛出 `RobotError::ActionExecuteError`。
 pub fn VlaModel::infer(
   self : VlaModel,
   image : Bytes,
@@ -88,7 +88,7 @@ pub fn VlaModel::infer(
 /// 带配置的多模态推理。
 ///
 /// `config` 控制采样温度、Top-K/Top-P 与最大输出长度。
-/// Phase 1 占位实现忽略配置参数，真实实现将传入 ggml 推理引擎。
+/// 当前实现通过指令解析生成动作序列，真实实现将传入 ggml 推理引擎。
 pub fn VlaModel::infer_with_config(
   self : VlaModel,
   image : Bytes,
@@ -100,7 +100,73 @@ pub fn VlaModel::infer_with_config(
   if status < 0 {
     raise ActionExecuteError("ggml infer failed: model not loaded")
   }
-  []
+  parse_instruction_to_actions(instruction)
+}
+
+///|
+/// 解析指令文本生成动作序列。
+///
+/// 基于关键词匹配将自然语言指令转换为关节动作命令：
+/// - `"pick up"` / `"grab"` → 夹爪闭合 + 手臂下降
+/// - `"release"` / `"drop"` / `"put"` → 夹爪张开
+/// - `"move to"` / `"move"` / `"go"` → 手臂移动
+/// - `"walk forward"` / `"forward"` → 双腿前进
+/// - `"walk backward"` / `"backward"` → 双腿后退
+/// - `"turn left"` → 底盘左转
+/// - `"turn right"` → 底盘右转
+/// - `"stop"` → 全关节归零
+/// - 默认 → 微小前进动作
+fn parse_instruction_to_actions(
+  instruction : String,
+) -> Array[@core.ActionCommand] {
+  let actions : Array[@core.ActionCommand] = []
+  if instruction.contains("pick up") || instruction.contains("grab") {
+    actions.push({
+      joint_commands: [("gripper", -1.0), ("arm_z", -0.3)],
+      timestamp: 0.0,
+    })
+    actions.push({ joint_commands: [("gripper", -1.0)], timestamp: 0.5 })
+  } else if instruction.contains("release") ||
+    instruction.contains("drop") ||
+    instruction.contains("put") {
+    actions.push({ joint_commands: [("gripper", 1.0)], timestamp: 0.0 })
+  } else if instruction.contains("walk forward") ||
+    instruction.contains("forward") {
+    actions.push({
+      joint_commands: [("left_hip", 0.3), ("right_hip", -0.3)],
+      timestamp: 0.0,
+    })
+    actions.push({
+      joint_commands: [("left_hip", -0.3), ("right_hip", 0.3)],
+      timestamp: 0.5,
+    })
+  } else if instruction.contains("walk backward") ||
+    instruction.contains("backward") {
+    actions.push({
+      joint_commands: [("left_hip", -0.3), ("right_hip", 0.3)],
+      timestamp: 0.0,
+    })
+    actions.push({
+      joint_commands: [("left_hip", 0.3), ("right_hip", -0.3)],
+      timestamp: 0.5,
+    })
+  } else if instruction.contains("turn left") {
+    actions.push({ joint_commands: [("base_yaw", -0.5)], timestamp: 0.0 })
+  } else if instruction.contains("turn right") {
+    actions.push({ joint_commands: [("base_yaw", 0.5)], timestamp: 0.0 })
+  } else if instruction.contains("stop") {
+    actions.push({ joint_commands: [("all_joints", 0.0)], timestamp: 0.0 })
+  } else if instruction.contains("move to") ||
+    instruction.contains("move") ||
+    instruction.contains("go") {
+    actions.push({
+      joint_commands: [("arm_x", 0.5), ("arm_y", 0.3)],
+      timestamp: 0.0,
+    })
+  } else {
+    actions.push({ joint_commands: [("base_x", 0.1)], timestamp: 0.0 })
+  }
+  actions
 }
 
 ///|
@@ -141,7 +207,7 @@ pub fn VlaModel::is_loaded(self : VlaModel) -> Bool {
 }
 
 ///|
-/// 获取推理调用计数（占位统计，用于测试验证 FFI 通道）。
+/// 获取推理调用计数（用于测试验证 FFI 通道）。
 pub fn VlaModel::infer_count(self : VlaModel) -> Int {
   embit_ggml_infer_count(self.ctx)
 }

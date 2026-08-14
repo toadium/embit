@@ -85,6 +85,7 @@ pub fn Tensor::vector(Array[Double]) -> Self
 pub struct Tokenizer {
   vocab_size : Int
   mut encode_count : Int
+  vocab : Array[String]
 }
 pub fn Tokenizer::count_tokens(Self, String) -> Int
 pub fn Tokenizer::decode(Self, Array[Int]) -> String
@@ -94,6 +95,7 @@ pub fn Tokenizer::encode_count(Self) -> Int
 pub fn Tokenizer::estimate_context_usage(Self, String, Int) -> Int
 pub fn Tokenizer::get_vocab_size(Self) -> Int
 pub fn Tokenizer::new(Int) -> Self
+pub fn Tokenizer::with_vocab(Array[String]) -> Self
 
 pub struct VlaModel {
   ctx : GgmlContext

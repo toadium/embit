@@ -3,7 +3,7 @@
 ///
 /// 不透明类型，由 C 侧 `embit_gazebo_connect` 创建，
 /// 封装为 GC 管理的外部对象（external object）。
-/// Phase 1 后续将绑定真实 `ign_transport_node_t`。
+/// 后续将绑定真实 `ign_transport_node_t`。
 type IgnitionNode
 
 ///|

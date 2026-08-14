@@ -1,7 +1,8 @@
-// gazebo_stub.c — Embit Gazebo FFI 桥接（Phase 1 占位实现）
+// gazebo_stub.c — Embit Gazebo FFI 桥接（功能化占位实现）
 //
 // 当前为自包含占位实现，不依赖 Ignition Transport C 库。
-// Phase 1 后续将替换为真实 Ignition Transport API 调用：
+// 消息内容跟踪由 MoonBit 侧 GazeboClient 维护，C 侧仅记录操作计数与状态。
+// 后续将替换为真实 Ignition Transport API 调用：
 //   - ign_transport_node_create / ign_transport_node_destroy
 //   - ign_transport_publish / ign_transport_subscribe
 //

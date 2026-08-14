@@ -26,6 +26,58 @@ test "VlaModel - infer increments infer_count" {
 }
 
 ///|
+/// "pick up" 指令应返回非空动作序列，包含夹爪闭合命令。
+test "VlaModel - infer pick up returns gripper actions" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let actions = model.infer(b"img", "pick up the red block")
+  assert_true(actions.length() > 0)
+  let cmd0 = actions[0]
+  assert_true(cmd0.joint_commands.length() >= 1)
+  assert_eq(cmd0.joint_commands[0], ("gripper", -1.0))
+  model.free()
+}
+
+///|
+/// "walk forward" 指令应返回双腿前进动作序列。
+test "VlaModel - infer walk forward returns leg actions" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let actions = model.infer(b"img", "walk forward")
+  assert_eq(actions.length(), 2)
+  assert_eq(actions[0].joint_commands[0], ("left_hip", 0.3))
+  model.free()
+}
+
+///|
+/// "turn left" 指令应返回底盘左转动作。
+test "VlaModel - infer turn left returns yaw action" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let actions = model.infer(b"img", "turn left")
+  assert_eq(actions.length(), 1)
+  assert_eq(actions[0].joint_commands[0], ("base_yaw", -0.5))
+  model.free()
+}
+
+///|
+/// "stop" 指令应返回全关节归零动作。
+test "VlaModel - infer stop returns zero action" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let actions = model.infer(b"img", "stop")
+  assert_eq(actions.length(), 1)
+  assert_eq(actions[0].joint_commands[0], ("all_joints", 0.0))
+  model.free()
+}
+
+///|
+/// 未知指令应返回默认微小前进动作。
+test "VlaModel - infer unknown returns default action" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let actions = model.infer(b"img", "do something")
+  assert_eq(actions.length(), 1)
+  assert_eq(actions[0].joint_commands[0], ("base_x", 0.1))
+  model.free()
+}
+
+///|
 /// 设置后端应更新 get_backend 的返回值。
 test "VlaModel - set_backend and get_backend" {
   let model = VlaModel::load("models/smolvla-7b-q4.gguf")
