@@ -57,6 +57,7 @@ pub struct DhFKSolver {
   ee_name : String
 }
 pub fn DhFKSolver::arm_6dof(ee_name? : String) -> Self
+pub fn DhFKSolver::arm_7dof(ee_name? : String) -> Self
 pub fn DhFKSolver::end_effector(Self) -> String
 pub fn DhFKSolver::fk(Self, Array[Double]) -> @embit-core.Transform raise @embit-core.RobotError
 pub fn DhFKSolver::new(Array[DHParam], String) -> Self
@@ -67,12 +68,16 @@ pub struct DhIKSolver {
   damping : Double
   max_iter : Int
   tolerance : Double
+  joint_limits : Array[(Double, Double)]?
+  null_space_gain : Double
 }
 pub fn DhIKSolver::dof(Self) -> Int
-pub fn DhIKSolver::new(DhFKSolver, damping? : Double, max_iter? : Int, tolerance? : Double) -> Self
+pub fn DhIKSolver::new(DhFKSolver, damping? : Double, max_iter? : Int, tolerance? : Double, joint_limits? : Array[(Double, Double)]?, null_space_gain? : Double) -> Self
 pub fn DhIKSolver::solve(Self, Pose, Array[Double]) -> Array[Double] raise @embit-core.RobotError
 pub fn DhIKSolver::solve_ik(Self, Pose) -> Array[@embit-core.JointState] raise @embit-core.RobotError
 pub fn DhIKSolver::solve_ik_with_seed(Self, Pose, Array[@embit-core.JointState]) -> Array[@embit-core.JointState] raise @embit-core.RobotError
+pub fn DhIKSolver::with_joint_limits(Self, Array[(Double, Double)]) -> Self
+pub fn DhIKSolver::with_null_space_gain(Self, Double) -> Self
 
 pub struct ImpedanceController {
   stiffness : Double

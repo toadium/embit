@@ -162,6 +162,7 @@ pub extend DhFKSolver with FKSolver::{solve_fk, end_effector}
 ///
 /// 使用数值雅可比 + 阻尼最小二乘（Levenberg-Marquardt）迭代求解。
 /// 适用于任意自由度的串联机器人，不依赖解析解。
+/// 支持关节限位约束与冗余臂零空间优化。
 pub struct DhIKSolver {
   fk_solver : DhFKSolver
   /// 阻尼因子（越大越稳定但收敛越慢）。
@@ -170,6 +171,10 @@ pub struct DhIKSolver {
   max_iter : Int
   /// 收敛阈值（末端位置误差，米）。
   tolerance : Double
+  /// 关节限位（min, max） per joint，None = 无约束。
+  joint_limits : Array[(Double, Double)]?
+  /// 零空间优化增益（>0 启用冗余臂关节居中，0 = 禁用）。
+  null_space_gain : Double
 }
 
 ///|
@@ -178,14 +183,36 @@ pub struct DhIKSolver {
 /// `fk_solver` 为对应的正运动学解算器，
 /// `damping` 为阻尼因子（推荐 0.01~0.1），
 /// `max_iter` 为最大迭代次数（推荐 50~200），
-/// `tolerance` 为收敛阈值（推荐 1e-6）。
+/// `tolerance` 为收敛阈值（推荐 1e-6），
+/// `joint_limits` 为关节限位（None = 无约束），
+/// `null_space_gain` 为零空间优化增益（0 = 禁用）。
 pub fn DhIKSolver::new(
   fk_solver : DhFKSolver,
   damping? : Double = 0.05,
   max_iter? : Int = 100,
   tolerance? : Double = 0.000001,
+  joint_limits? : Array[(Double, Double)]? = None,
+  null_space_gain? : Double = 0.0,
 ) -> DhIKSolver {
-  { fk_solver, damping, max_iter, tolerance }
+  { fk_solver, damping, max_iter, tolerance, joint_limits, null_space_gain }
+}
+
+///|
+/// 设置关节限位。
+pub fn DhIKSolver::with_joint_limits(
+  self : DhIKSolver,
+  limits : Array[(Double, Double)],
+) -> DhIKSolver {
+  { ..self, joint_limits: Some(limits) }
+}
+
+///|
+/// 设置零空间优化增益（用于冗余臂关节居中）。
+pub fn DhIKSolver::with_null_space_gain(
+  self : DhIKSolver,
+  gain : Double,
+) -> DhIKSolver {
+  { ..self, null_space_gain: gain }
 }
 
 ///|
@@ -369,8 +396,55 @@ pub fn DhIKSolver::solve(
     }
     let jacobian = numerical_jacobian(self.fk_solver, q, delta)
     let dq = damped_least_squares(jacobian, err, self.damping)
+    // 零空间优化：冗余臂（n > 6）关节居中
+    if self.null_space_gain > 0.0 && n > 6 {
+      let h : Array[Double] = []
+      for i in 0..<n {
+        let center = match self.joint_limits {
+          Some(limits) =>
+            if i < limits.length() {
+              let (lo, hi) = limits[i]
+              (lo + hi) / 2.0
+            } else {
+              0.0
+            }
+          None => 0.0
+        }
+        h.push(center - q[i])
+      }
+      // J·h（6 维）
+      let jh : Array[Double] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      for i in 0..<6 {
+        for j in 0..<n {
+          jh[i] = jh[i] + jacobian[j][i] * h[j]
+        }
+      }
+      // J^†·J·h
+      let jtjh = damped_least_squares(jacobian, jh, self.damping)
+      // δq_null = α·(h - J^†·J·h)
+      for i in 0..<n {
+        dq[i] = dq[i] + self.null_space_gain * (h[i] - jtjh[i])
+      }
+    }
+    // 更新关节角度
     for i in 0..<n {
       q[i] = q[i] + dq[i]
+    }
+    // 关节限位钳位
+    match self.joint_limits {
+      Some(limits) =>
+        for i in 0..<n {
+          if i < limits.length() {
+            let (lo, hi) = limits[i]
+            if q[i] < lo {
+              q[i] = lo
+            }
+            if q[i] > hi {
+              q[i] = hi
+            }
+          }
+        }
+      None => ()
     }
   }
   q
@@ -453,6 +527,25 @@ pub fn DhFKSolver::arm_6dof(ee_name? : String = "ee_link") -> DhFKSolver {
     DHParam::revolute("wrist_1", 0.0, 1.5707963267948966, 0.109, 0.0),
     DHParam::revolute("wrist_2", 0.0, 1.5707963267948966, 0.0, 0.0),
     DHParam::revolute("wrist_3", 0.0, 0.0, 0.082, 0.0),
+  ]
+  DhFKSolver::new(params, ee_name)
+}
+
+///|
+/// 预设：7-DOF 冗余机械臂 DH 参数（类似 Franka Panda 尺寸）。
+///
+/// 返回 7 个旋转关节的 DH 参数，适用于 7 轴冗余机械臂。
+/// 冗余自由度可用于零空间优化（关节居中、避奇异、避碰撞）。
+pub fn DhFKSolver::arm_7dof(ee_name? : String = "ee_link") -> DhFKSolver {
+  let half_pi = 1.5707963267948966
+  let params : Array[DHParam] = [
+    DHParam::revolute("joint1", 0.0, half_pi, 0.333, 0.0),
+    DHParam::revolute("joint2", 0.0, -half_pi, 0.0, 0.0),
+    DHParam::revolute("joint3", 0.0, half_pi, 0.316, 0.0),
+    DHParam::revolute("joint4", 0.0825, half_pi, 0.0, 0.0),
+    DHParam::revolute("joint5", -0.0825, -half_pi, 0.384, 0.0),
+    DHParam::revolute("joint6", 0.0, half_pi, 0.0, 0.0),
+    DHParam::revolute("joint7", 0.088, 0.0, 0.0, 0.0),
   ]
   DhFKSolver::new(params, ee_name)
 }

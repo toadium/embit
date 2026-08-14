@@ -308,3 +308,136 @@ test "DhIKSolver - solve with zero params handles empty jacobian" {
   let result = ik.solve(target, [])
   assert_eq(result.length(), 0)
 }
+
+// ===== Phase 3.2: 关节限位约束 =====
+
+///|
+/// 关节限位钳位：求解后所有关节角度应在限位范围内。
+test "DhIKSolver - joint limits clamping" {
+  let fk = DhFKSolver::arm_6dof()
+  let limits : Array[(Double, Double)] = [
+    (-1.0, 1.0),
+    (-1.0, 1.0),
+    (-1.0, 1.0),
+    (-1.0, 1.0),
+    (-1.0, 1.0),
+    (-1.0, 1.0),
+  ]
+  let ik = DhIKSolver::new(
+    fk,
+    damping=0.1,
+    max_iter=200,
+    tolerance=0.0001,
+    joint_limits=Some(limits),
+  )
+  let target = Pose::new(0.3, 0.2, 0.5, 0.0, 1.57, 0.0)
+  let result = ik.solve_ik(target)
+  for js in result {
+    assert_true(js.position >= -1.001)
+    assert_true(js.position <= 1.001)
+  }
+}
+
+///|
+/// with_joint_limits 链式设置关节限位。
+test "DhIKSolver - with_joint_limits" {
+  let fk = DhFKSolver::arm_6dof()
+  let ik = DhIKSolver::new(fk).with_joint_limits([
+    (-0.5, 0.5),
+    (-0.5, 0.5),
+    (-0.5, 0.5),
+    (-0.5, 0.5),
+    (-0.5, 0.5),
+    (-0.5, 0.5),
+  ])
+  let target = Pose::new(0.3, 0.0, 0.4, 0.0, 1.57, 0.0)
+  let result = ik.solve_ik(target)
+  for js in result {
+    assert_true(js.position >= -0.501)
+    assert_true(js.position <= 0.501)
+  }
+}
+
+// ===== Phase 3.2: 7-DOF 冗余臂 =====
+
+///|
+/// 7-DOF 臂预设：dof 返回 7。
+test "DhFKSolver - arm_7dof dof" {
+  let fk = DhFKSolver::arm_7dof()
+  assert_eq(fk.params.length(), 7)
+}
+
+///|
+/// 7-DOF 臂正运动学：零关节角度返回有效位姿。
+test "DhFKSolver - arm_7dof fk zero joints" {
+  let fk = DhFKSolver::arm_7dof()
+  let joints : Array[@core.JointState] = [
+    { name: "joint1", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "joint2", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "joint3", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "joint4", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "joint5", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "joint6", position: 0.0, velocity: 0.0, effort: 0.0 },
+    { name: "joint7", position: 0.0, velocity: 0.0, effort: 0.0 },
+  ]
+  let pose = fk.solve_fk(joints)
+  let (x, y, z) = pose.position
+  // 末端位置应为有限实数
+  assert_true(x == x)
+  assert_true(y == y)
+  assert_true(z == z)
+}
+
+///|
+/// 7-DOF 臂 IK：FK(IK(target)) ≈ target（往返一致性）。
+test "DhIKSolver - arm_7dof fk after ik" {
+  let fk = DhFKSolver::arm_7dof()
+  let ik = DhIKSolver::new(fk, damping=0.1, max_iter=200, tolerance=0.001)
+  let target = Pose::new(0.3, 0.2, 0.5, 0.0, 1.57, 0.0)
+  let joint_states = ik.solve_ik(target)
+  let result = fk.solve_fk(joint_states)
+  let (tx, ty, tz) = target.position
+  let (rx, ry, rz) = result.position
+  let err = ((tx - rx) * (tx - rx) +
+  (ty - ry) * (ty - ry) +
+  (tz - rz) * (tz - rz)).sqrt()
+  assert_true(err < 0.05)
+}
+
+///|
+/// 7-DOF 臂 IK：零空间优化使关节趋向居中。
+test "DhIKSolver - arm_7dof null space optimization" {
+  let fk = DhFKSolver::arm_7dof()
+  let limits : Array[(Double, Double)] = [
+    (-2.0, 2.0),
+    (-2.0, 2.0),
+    (-2.0, 2.0),
+    (-2.0, 2.0),
+    (-2.0, 2.0),
+    (-2.0, 2.0),
+    (-2.0, 2.0),
+  ]
+  let ik = DhIKSolver::new(
+    fk,
+    damping=0.1,
+    max_iter=200,
+    tolerance=0.001,
+    joint_limits=Some(limits),
+    null_space_gain=0.1,
+  )
+  let target = Pose::new(0.3, 0.2, 0.5, 0.0, 1.57, 0.0)
+  let joint_states = ik.solve_ik(target)
+  // 验证 FK 往返
+  let result = fk.solve_fk(joint_states)
+  let (tx, ty, tz) = target.position
+  let (rx, ry, rz) = result.position
+  let err = ((tx - rx) * (tx - rx) +
+  (ty - ry) * (ty - ry) +
+  (tz - rz) * (tz - rz)).sqrt()
+  assert_true(err < 0.05)
+  // 验证关节在限位内
+  for js in joint_states {
+    assert_true(js.position >= -2.001)
+    assert_true(js.position <= 2.001)
+  }
+}
