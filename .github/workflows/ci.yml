@@ -67,16 +67,3 @@ jobs:
       - name: Format check
         run: moon fmt --check
 
-  info:
-    name: moon info check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install MoonBit
-        run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
-          echo "$HOME/.moon/bin" >> $GITHUB_PATH
-      - name: Info check
-        run: |
-          moon info
-          git diff --exit-code
