@@ -222,3 +222,36 @@ test "QuantType - enum values" {
   assert_eq(QuantType::Q4, Q4)
   assert_true(QuantType::Fp16 != Q4)
 }
+
+// ===== 动作序列 FFI 查询测试 =====
+
+///|
+/// 占位模式下 embit_ggml_get_action_count 始终返回 0，
+/// 动作序列由 MoonBit 侧 parse_instruction_to_actions 生成。
+test "VlaModel - placeholder action_count is zero" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let _ = model.infer(b"img", "pick up the red block")
+  // 占位模式：C 侧动作计数为 0，回退到指令解析
+  assert_eq(embit_ggml_get_action_count(model.ctx), 0)
+  model.free()
+}
+
+///|
+/// 占位模式下 embit_ggml_get_action_joint 返回 0.0（无真实动作数据）。
+test "VlaModel - placeholder action_joint returns zero" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let _ = model.infer(b"img", "walk forward")
+  assert_eq(embit_ggml_get_action_joint(model.ctx, 0, 0), 0.0)
+  assert_eq(embit_ggml_get_action_joint(model.ctx, 0, 6), 0.0)
+  model.free()
+}
+
+///|
+/// 推理后动作序列应非空（占位模式由指令解析生成）。
+test "VlaModel - infer returns non-empty actions in placeholder mode" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let actions = model.infer(b"img", "pick up the red block")
+  // 占位模式：action_count=0 但 parse_instruction_to_actions 返回非空
+  assert_true(actions.length() > 0)
+  model.free()
+}

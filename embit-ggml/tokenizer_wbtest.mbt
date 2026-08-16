@@ -145,3 +145,39 @@ test "Tokenizer - estimate_context_usage" {
   let usage = tok.estimate_context_usage("hello world foo", 10)
   assert_eq(usage, 13) // 3 tokens + 10 margin
 }
+
+// ===== ggml tokenizer 绑定测试 =====
+
+///|
+/// 占位模式下 encode_with_ggml 回退到内置词表 encode。
+test "Tokenizer - encode_with_ggml fallback in placeholder" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let tok = Tokenizer::default()
+  let ids = tok.encode_with_ggml(model.ctx, "pick up")
+  // 占位模式：embit_ggml_tokenize 返回 -1，回退到内置词表
+  assert_true(ids.length() >= 1)
+  model.free()
+}
+
+///|
+/// 占位模式下 decode_with_ggml 回退到内置词表 decode。
+test "Tokenizer - decode_with_ggml fallback in placeholder" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let tok = Tokenizer::default()
+  let ids = tok.encode("pick up")
+  let text = tok.decode_with_ggml(model.ctx, ids)
+  // 占位模式：embit_ggml_detokenize 返回空 Bytes，回退到内置词表
+  assert_eq(text, "pick up")
+  model.free()
+}
+
+///|
+/// 占位模式下 count_tokens_with_ggml 回退到 count_tokens。
+test "Tokenizer - count_tokens_with_ggml fallback in placeholder" {
+  let model = VlaModel::load("models/smolvla-7b-q4.gguf")
+  let tok = Tokenizer::default()
+  let n = tok.count_tokens_with_ggml(model.ctx, "pick up the red block")
+  // 占位模式：回退到空白字符分词，5 个词
+  assert_eq(n, 5)
+  model.free()
+}

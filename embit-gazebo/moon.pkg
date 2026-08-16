@@ -1,6 +1,23 @@
 // embit-gazebo：仿真通信 SDK
 // 封装 Ignition Transport C API，提供 MoonBit 原生话题发布/订阅、服务调用接口。
 // 通过 native-stub 编译 C 桥接代码，FFI 通道仅支持 native 后端。
+//
+// 条件编译架构：
+//   - 默认（无 EMBIT_HAS_IGNITION）：占位回退，仅记录操作计数，用于无库环境编译与单元测试
+//   - 启用（EMBIT_HAS_IGNITION）：调用真实 Ignition Transport C 接口
+//
+// 启用真实 API：
+//   python scripts/prepare.py --with-ignition
+//   prepare.py 会编译 gazebo_ignition_wrapper.cpp 为静态库，
+//   并在此文件追加 link(native(...)) 配置（见下方注释块）。
+//
+// 真实链接配置模板（由 prepare.py 自动追加，勿手动编辑）：
+//   link(
+//     native(
+//       "stub-cc-flags": "-DEMBIT_HAS_IGNITION",
+//       "cc-link-flags": "-L./lib -lembit_ignition -lignition-transport -lprotobuf -luuid",
+//     )
+//   )
 
 supported_targets = "native"
 

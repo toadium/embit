@@ -5,6 +5,12 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      ffi-integration:
+        description: "Run FFI integration tests (requires Gazebo + ggml)"
+        type: boolean
+        default: false
 
 jobs:
   check:
@@ -80,4 +86,58 @@ jobs:
         run: |
           moon info
           git diff --exit-code
+
+  # ===== FFI 集成测试（可选，需手动触发或 ffi-integration label）=====
+  # 启用方式：
+  #   1. workflow_dispatch: 勾选 ffi-integration 输入
+  #   2. PR label: 添加 "ffi-integration" 标签
+  # 这些 job 安装真实 C 库，运行 prepare.py 启用 EMBIT_HAS_IGNITION/EMBIT_HAS_GGML，
+  # 然后运行集成测试验证真实 FFI 通道。
+
+  ffi-gazebo:
+    name: FFI Gazebo Integration
+    if: |
+      github.event_name == 'workflow_dispatch' && inputs.ffi-integration ||
+      contains(github.event.pull_request.labels.*.name, 'ffi-integration')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+      - name: Install Gazebo Fortress
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ignition-fortress
+      - name: Prepare Gazebo FFI
+        run: python3 embit-gazebo/scripts/prepare.py --with-ignition
+      - name: Check with real Ignition Transport
+        run: moon check --warn-list +all --deny-warn
+      - name: Test with real Ignition Transport
+        run: moon test --target native -p walkzzz/embit/embit-gazebo
+
+  ffi-ggml:
+    name: FFI ggml Integration
+    if: |
+      github.event_name == 'workflow_dispatch' && inputs.ffi-integration ||
+      contains(github.event.pull_request.labels.*.name, 'ffi-integration')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+      - name: Install ggml/llama.cpp
+        run: |
+          git clone https://github.com/ggerganov/llama.cpp /tmp/llama.cpp
+          cd /tmp/llama.cpp && make -j$(nproc)
+          echo "GGML_PREFIX=/tmp/llama.cpp" >> $GITHUB_ENV
+      - name: Prepare ggml FFI
+        run: python3 embit-ggml/scripts/prepare.py --with-ggml
+      - name: Check with real ggml
+        run: moon check --warn-list +all --deny-warn
+      - name: Test with real ggml
+        run: moon test --target native -p walkzzz/embit/embit-ggml
 

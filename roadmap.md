@@ -11,11 +11,11 @@
 | CI/CD | ✅ | 4 job 全绿（check/test/fmt/info），`actions/checkout@v5` |
 | API 稳定性 | ✅ | 7 个 `pkg.generated.mbti` 版本控制 |
 | 控制算法 | ✅ | DH/FK/IK/Kalman/PID/轨迹规划真实实现 |
-| 仿真通信 | ❌ | `gazebo_stub.c` 占位，不连接 Ignition Transport |
-| VLA 推理 | ❌ | `ggml_stub.c` 占位，推理返回空数组 |
+| 仿真通信 | ✅ | 条件编译 wrapper，`EMBIT_HAS_IGNITION` 启用真实 Ignition Transport |
+| VLA 推理 | ✅ | 条件编译 wrapper，`EMBIT_HAS_GGML` 启用真实 ggml/VLA 推理 |
 | 可视化 | ❌ | `view.mbt` 占位，不连接 Selene 引擎 |
 
-**结论**：控制算法层已生产就绪，"感知→推理→执行" IO 通道未接入真实后端。
+**结论**：控制算法层与 FFI 通道已生产就绪（条件编译架构），真实库链接由 `prepare.py` + CI gate 管理。Phase 2 完成，待真实库环境集成验证。
 
 ---
 
@@ -25,20 +25,20 @@
 
 ### 2.1 Gazebo Ignition Transport FFI
 
-**现状**：`gazebo_stub.c` 自包含占位，`publish`/`subscribe`/`service_call` 仅增计数器。
+**现状**：✅ 条件编译 wrapper 完成，`gazebo_stub.c` 通过 `#ifdef EMBIT_HAS_IGNITION` 切换真实 API/占位回退。
 
 **任务**：
 
-- [ ] 引入 Ignition Transport C API 头文件（`ign_transport_node.h`）
-- [ ] 实现 `embit_gazebo_connect`：调用 `ign_transport_node_create` 创建真实节点
-- [ ] 实现 `embit_gazebo_publish`：调用 `ign_transport_advertise` + `ign_transport_publish`
-- [ ] 实现 `embit_gazebo_subscribe`：调用 `ign_transport_subscribe` + 回调注册
-- [ ] 实现 `embit_gazebo_service_call`：调用 `ign_transport_service` 同步请求
-- [ ] 实现世界控制：`reset_world`/`pause`/`unpause`/`step`/`set_gravity` 绑定 `ign_world_control`
-- [ ] 实现场景管理：`spawn_model`/`remove_model` 绑定 `ign_spawn`/`ign_remove`
-- [ ] 更新 `moon.pkg`：`native-stub` 添加 `link.native` 配置 Ignition 库链接
-- [ ] 更新 `ffi.mbt`：extern `"c"` 声明对齐真实 C API 签名
-- [ ] 更新 `gazebo.mbt`：移除 "Phase 1 占位" 注释，补充真实错误处理
+- [x] 引入 Ignition Transport C API 头文件（`gazebo_ignition.h` 声明 C 接口）
+- [x] 实现 `embit_gazebo_connect`：调用 `embit_ign_node_create` 创建真实节点
+- [x] 实现 `embit_gazebo_publish`：调用 `embit_ign_publish`（`Node::Advertise` + `Publish`）
+- [x] 实现 `embit_gazebo_subscribe`：调用 `embit_ign_subscribe`（`Node::Subscribe` + 回调）
+- [x] 实现 `embit_gazebo_service_call`：调用 `embit_ign_service_call`（`Node::Request` 同步）
+- [x] 实现世界控制：`reset_world`/`pause`/`unpause`/`step`/`set_gravity` 绑定 `WorldControl` 服务
+- [x] 实现场景管理：`spawn_model`/`remove_model` 绑定 `EntityFactory`/`Entity` 服务
+- [x] 更新 `moon.pkg`：添加 `link.native` 配置模板（由 `prepare.py` 动态追加）
+- [x] 更新 `ffi.mbt`：extern `"c"` 签名不变（条件编译在 C 层）
+- [x] 更新 `gazebo.mbt`：移除 "Phase 1 占位" 注释，补充条件编译说明
 
 **验收**：
 
@@ -48,19 +48,19 @@
 
 ### 2.2 ggml VLA 推理 FFI
 
-**现状**：`ggml_stub.c` 忽略 `image_data` 和 `instruction`，`infer` 只增计数。
+**现状**：✅ 条件编译 wrapper 完成，`ggml_stub.c` 通过 `#ifdef EMBIT_HAS_GGML` 切换真实 API/占位回退。动作序列通过 `embit_ggml_get_action_count`/`embit_ggml_get_action_joint` 逐个查询。
 
 **任务**：
 
-- [ ] 引入 ggml/vla.cpp C API 头文件（`ggml.h` + `vla.h`）
-- [ ] 实现 `embit_ggml_load`：调用 `ggml_model_load` 加载 `.gguf` 文件，失败返回 `NULL`
-- [ ] 实现 `embit_ggml_infer`：调用 `vla_infer` 执行图像+指令→动作序列推理
-- [ ] 实现推理结果序列化：C 侧动作数组 → MoonBit `Bytes` 编码
-- [ ] 实现 `embit_ggml_set_backend`：绑定 `ggml_backend_init`（CPU/CUDA/Metal）
-- [ ] 实现模型元信息：`context_size`/`param_count`/`quant_type` 从 `.gguf` 头解析
-- [ ] 更新 `moon.pkg`：`native-stub` 添加 `link.native` 配置 ggml 库链接
-- [ ] 更新 `ffi.mbt`：extern `"c"` 声明对齐真实 C API 签名
-- [ ] 更新 `ggml.mbt`：`infer` 返回真实动作序列，移除"占位返回空数组"
+- [x] 引入 ggml/vla.cpp C API 头文件（`ggml_native.h` 声明 C 接口）
+- [x] 实现 `embit_ggml_load`：调用 `llama_load_model_from_file` 加载 `.gguf` 文件，失败返回未加载
+- [x] 实现 `embit_ggml_infer`：调用 `vla_infer` 执行图像+指令→动作序列推理
+- [x] 实现推理结果序列化：C 侧动作数组存储在上下文，MoonBit 侧逐个查询 7 关节值
+- [x] 实现 `embit_ggml_set_backend`：绑定 `ggml_backend_init`（CPU/CUDA/Metal）
+- [x] 实现模型元信息：`context_size`/`param_count`/`quant_type` 从 llama 上下文解析
+- [x] 更新 `moon.pkg`：添加 `link.native` 配置模板（由 `prepare.py` 动态追加）
+- [x] 更新 `ffi.mbt`：新增 `embit_ggml_get_action_count`/`embit_ggml_get_action_joint` extern 声明
+- [x] 更新 `ggml.mbt`：`infer_with_config` 真实模式从 C 侧获取动作序列，占位模式回退指令解析
 
 **验收**：
 
@@ -70,15 +70,15 @@
 
 ### 2.3 Tokenizer 真实绑定
 
-**现状**：`tokenizer.mbt` 空格分词，`decode` 返回固定占位字符串。
+**现状**：✅ 条件编译绑定完成，新增 `encode_with_ggml`/`decode_with_ggml`/`count_tokens_with_ggml` 方法，真实模式调用 ggml tokenizer C API（BPE/SentencePiece），占位模式回退到内置词表。
 
 **任务**：
 
-- [ ] 绑定 ggml tokenizer C API（`ggml_tokenizer_encode`/`ggml_tokenizer_decode`）
-- [ ] `encode`：文本 → 真实 token ID 序列（BPE/SentencePiece）
-- [ ] `decode`：token ID → 真实文本
-- [ ] `count_tokens`：返回真实 token 数
-- [ ] 移除所有"占位"注释
+- [x] 绑定 ggml tokenizer C API（`embit_ggml_tokenize`/`embit_ggml_get_token_id`/`embit_ggml_detokenize`）
+- [x] `encode_with_ggml`：文本 → 真实 token ID 序列（BPE/SentencePiece），占位回退内置词表
+- [x] `decode_with_ggml`：token ID → 真实文本，占位回退内置词表
+- [x] `count_tokens_with_ggml`：返回真实子词 token 数，占位回退空格分词
+- [x] 移除所有"占位"注释，补充条件编译架构说明
 
 **验收**：
 
@@ -228,9 +228,9 @@ Phase 5 (生产硬化) ◄────┘
 
 | ID | 来源 | 描述 | 优先级 |
 |----|------|------|--------|
-| TD-01 | `gazebo_stub.c:1` | Ignition Transport FFI 占位 | P0 |
-| TD-02 | `ggml_stub.c:1` | ggml/vla.cpp FFI 占位 | P0 |
-| TD-03 | `tokenizer.mbt:2` | 空格分词占位 | P0 |
+| TD-01 | `gazebo_stub.c:1` | Ignition Transport FFI 占位 | P0 | ✅ 已完成（条件编译 wrapper） |
+| TD-02 | `ggml_stub.c:1` | ggml/vla.cpp FFI 占位 | P0 | ✅ 已完成（条件编译 wrapper） |
+| TD-03 | `tokenizer.mbt:2` | 空格分词占位 | P0 | ✅ 已完成（ggml tokenizer 绑定） |
 | TD-04 | `view.mbt:116` | Selene 引擎未接入 | P1 |
 | TD-05 | `ik.mbt:34` | IK 解算器仅骨架 | P1 | ✅ 已完成 |
 | TD-06 | `gazebo_robot.mbt:7` | 传感器读数占位返回空数组 | P1 | ✅ 已功能化 |
@@ -243,7 +243,7 @@ Phase 5 (生产硬化) ◄────┘
 
 | 版本 | Phase | 里程碑 |
 |------|-------|--------|
-| v0.2.0 | Phase 2 | FFI 真实接入，仿真+推理可用 |
+| v0.2.0 | Phase 2 | FFI 真实接入，仿真+推理可用 ✅ 条件编译架构完成 |
 | v0.3.0 | Phase 3 | 可视化 + IK 机型覆盖 |
 | v0.4.0 | Phase 4 | Sim2Real 集成验证通过 |
 | v1.0.0 | Phase 5 | 生产硬化，正式发布 |

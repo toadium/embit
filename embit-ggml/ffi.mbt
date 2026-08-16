@@ -18,12 +18,35 @@ extern "c" fn embit_ggml_load(path : Bytes) -> GgmlContext = "embit_ggml_load"
 ///
 /// `image_data` 为原始图像字节流，`instruction` 为 UTF-8 编码的语言指令。
 /// 返回：0=成功, -1=失败（未加载或空指针）。
+/// 推理后动作序列存储在 C 侧上下文中，通过 `embit_ggml_get_action_count`
+/// 与 `embit_ggml_get_action_joint` 逐个查询。
 #borrow(ctx, image_data, instruction)
 extern "c" fn embit_ggml_infer(
   ctx : GgmlContext,
   image_data : Bytes,
   instruction : Bytes,
 ) -> Int = "embit_ggml_infer"
+
+///|
+/// 获取上次推理的动作序列长度。
+///
+/// 占位模式返回 0（动作序列由 MoonBit 侧生成）；
+/// 真实模式（EMBIT_HAS_GGML）返回 C 侧推理的动作数。
+#borrow(ctx)
+extern "c" fn embit_ggml_get_action_count(ctx : GgmlContext) -> Int = "embit_ggml_get_action_count"
+
+///|
+/// 获取指定动作的指定关节值。
+///
+/// `action_idx` 为动作索引（0-based），`joint_idx` 为关节索引（0-5=关节, 6=gripper）。
+/// 每个动作 7 个值：[joint_0, joint_1, joint_2, joint_3, joint_4, joint_5, gripper]。
+/// 越界返回 0.0。
+#borrow(ctx)
+extern "c" fn embit_ggml_get_action_joint(
+  ctx : GgmlContext,
+  action_idx : Int,
+  joint_idx : Int,
+) -> Double = "embit_ggml_get_action_joint"
 
 ///|
 /// 设置推理后端（0=CPU, 1=CUDA, 2=Metal）。
@@ -67,3 +90,28 @@ extern "c" fn embit_ggml_get_param_count(ctx : GgmlContext) -> Int = "embit_ggml
 /// 获取量化类型编号。
 #borrow(ctx)
 extern "c" fn embit_ggml_get_quant_type(ctx : GgmlContext) -> Int = "embit_ggml_get_quant_type"
+
+// ===== Tokenizer FFI =====
+
+///|
+/// 使用 ggml tokenizer 编码文本，返回 token 数。
+///
+/// token ID 序列存储在 C 侧上下文中，通过 `embit_ggml_get_token_id` 逐个查询。
+/// 真实模式（EMBIT_HAS_GGML）调用 ggml tokenizer C API（BPE/SentencePiece）。
+/// 占位模式返回 -1（调用方应回退到内置词表分词）。
+#borrow(ctx, text)
+extern "c" fn embit_ggml_tokenize(ctx : GgmlContext, text : Bytes) -> Int = "embit_ggml_tokenize"
+
+///|
+/// 获取 `embit_ggml_tokenize` 后指定索引的 token ID。
+///
+/// 越界返回 -1。
+#borrow(ctx)
+extern "c" fn embit_ggml_get_token_id(ctx : GgmlContext, index : Int) -> Int = "embit_ggml_get_token_id"
+
+///|
+/// 使用 ggml tokenizer 解码单个 token ID 为文本片段（UTF-8 Bytes）。
+///
+/// 占位模式返回空 Bytes。
+#borrow(ctx)
+extern "c" fn embit_ggml_detokenize(ctx : GgmlContext, token_id : Int) -> Bytes = "embit_ggml_detokenize"

@@ -2,7 +2,8 @@
 /// 仿真环境客户端，封装 Ignition Transport 话题通信。
 ///
 /// 通过 FFI 绑定 Ignition Transport C API，提供话题发布/订阅与服务调用。
-/// 当前为功能化占位实现，MoonBit 侧跟踪最近发布的消息与服务调用，用于集成测试验证。
+/// 条件编译：EMBIT_HAS_IGNITION 启用真实 API，否则占位回退（仅记录计数）。
+/// MoonBit 侧跟踪最近发布的消息与服务调用，用于集成测试验证。
 pub struct GazeboClient {
   node : IgnitionNode
   mut last_publish_topic : String // 最近发布的话题名
@@ -13,7 +14,7 @@ pub struct GazeboClient {
 /// 连接仿真环境。
 ///
 /// `address` 格式为 `host:port`，如 `"localhost:9000"`。
-/// 占位实现始终连接成功；真实实现失败时抛出 `RobotError::ConnectError`。
+/// 占位模式始终连接成功；真实模式（EMBIT_HAS_IGNITION）连接失败时返回未连接节点。
 pub fn GazeboClient::connect(address : String) -> GazeboClient {
   let node = embit_gazebo_connect(@utf8.encode(address))
   { node, last_publish_topic: "", last_service: "" }

@@ -20,7 +20,7 @@ pub extend Backend with @debug.Debug::{to_repr}
 /// VLA（Vision-Language-Action）模型，封装多模态推理能力。
 ///
 /// 通过 FFI 绑定 ggml/vla.cpp，支持图像 + 语言指令 → 动作序列推理。
-/// 当前使用功能化占位实现，通过指令解析生成动作序列。
+/// 条件编译：EMBIT_HAS_GGML 启用真实 ggml 推理，否则占位回退（指令解析生成动作）。
 pub struct VlaModel {
   ctx : GgmlContext
   model_path : String
@@ -30,7 +30,7 @@ pub struct VlaModel {
 /// 加载 VLA 模型。
 ///
 /// `path` 指向 `.gguf` 模型文件。加载成功后默认使用 CPU 后端。
-/// 占位实现始终加载成功；真实实现失败时抛出 `RobotError::ConnectError`。
+/// 占位模式始终加载成功；真实模式（EMBIT_HAS_GGML）加载失败时返回未加载状态。
 pub fn VlaModel::load(path : String) -> VlaModel {
   let ctx = embit_ggml_load(@utf8.encode(path))
   { ctx, model_path: path }
@@ -88,7 +88,7 @@ pub fn VlaModel::infer(
 /// 带配置的多模态推理。
 ///
 /// `config` 控制采样温度、Top-K/Top-P 与最大输出长度。
-/// 当前实现通过指令解析生成动作序列，真实实现将传入 ggml 推理引擎。
+/// 占位模式通过指令解析生成动作序列；真实模式（EMBIT_HAS_GGML）从 C 侧获取真实动作序列。
 pub fn VlaModel::infer_with_config(
   self : VlaModel,
   image : Bytes,
@@ -100,7 +100,48 @@ pub fn VlaModel::infer_with_config(
   if status < 0 {
     raise ActionExecuteError("ggml infer failed: model not loaded")
   }
+  // 真实模式：从 C 侧获取动作序列
+  let ffi_actions = infer_actions_from_ffi(self.ctx)
+  if ffi_actions.length() > 0 {
+    return ffi_actions
+  }
+  // 占位模式：指令解析生成动作序列
   parse_instruction_to_actions(instruction)
+}
+
+///|
+/// 从 C 侧 FFI 获取上次推理的动作序列。
+///
+/// 真实模式（EMBIT_HAS_GGML）下 `embit_ggml_infer` 将动作序列存储在 C 侧上下文中，
+/// 此函数逐个查询关节值并构建 `Array[ActionCommand]`。
+/// 占位模式返回空数组（动作序列由 `parse_instruction_to_actions` 生成）。
+///
+/// 每个动作 7 个值：[joint_0, joint_1, joint_2, joint_3, joint_4, joint_5, gripper]，
+/// 时间戳按 0.5s 间隔递增。
+fn infer_actions_from_ffi(ctx : GgmlContext) -> Array[@core.ActionCommand] {
+  let count = embit_ggml_get_action_count(ctx)
+  if count <= 0 {
+    return []
+  }
+  let actions : Array[@core.ActionCommand] = []
+  for i in 0..<count {
+    let joint_commands : Array[(String, Double)] = []
+    for j in 0..<7 {
+      let value = embit_ggml_get_action_joint(ctx, i, j)
+      let name = match j {
+        0 => "joint_0"
+        1 => "joint_1"
+        2 => "joint_2"
+        3 => "joint_3"
+        4 => "joint_4"
+        5 => "joint_5"
+        _ => "gripper"
+      }
+      joint_commands.push((name, value))
+    }
+    actions.push({ joint_commands, timestamp: i.to_double() * 0.5 })
+  }
+  actions
 }
 
 ///|

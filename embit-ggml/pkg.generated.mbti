@@ -88,10 +88,13 @@ pub struct Tokenizer {
   vocab : Array[String]
 }
 pub fn Tokenizer::count_tokens(Self, String) -> Int
+pub fn Tokenizer::count_tokens_with_ggml(Self, GgmlContext, String) -> Int
 pub fn Tokenizer::decode(Self, Array[Int]) -> String
+pub fn Tokenizer::decode_with_ggml(Self, GgmlContext, Array[Int]) -> String
 pub fn Tokenizer::default() -> Self
 pub fn Tokenizer::encode(Self, String) -> Array[Int] raise @embit-core.RobotError
 pub fn Tokenizer::encode_count(Self) -> Int
+pub fn Tokenizer::encode_with_ggml(Self, GgmlContext, String) -> Array[Int] raise @embit-core.RobotError
 pub fn Tokenizer::estimate_context_usage(Self, String, Int) -> Int
 pub fn Tokenizer::get_vocab_size(Self) -> Int
 pub fn Tokenizer::new(Int) -> Self

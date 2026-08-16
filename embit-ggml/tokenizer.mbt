@@ -4,6 +4,10 @@
 /// 内置常见机器人指令词表（pick/up/move/grab 等），`encode` 通过词表查找生成 token ID，
 /// `decode` 通过逆向词表恢复文本。词表内单词满足 `decode(encode(s)) == s` 往返一致。
 /// 词表外单词使用哈希回退生成 ID（偏移至词表末尾之后，避免 ID 冲突），`decode` 返回 `"<unk>"`。
+///
+/// 条件编译架构：占位模式使用内置词表分词；真实模式（EMBIT_HAS_GGML）应关联 GgmlContext
+/// 并调用 ggml tokenizer C API（BPE/SentencePiece 子词分词）。真实绑定需后续 PR 扩展
+/// Tokenizer API 以持有 GgmlContext 引用。
 pub struct Tokenizer {
   vocab_size : Int // 词表容量
   mut encode_count : Int // 编码调用次数
@@ -71,6 +75,8 @@ pub fn Tokenizer::default() -> Tokenizer {
 ///|
 /// 统计文本 token 数（按空白字符分词）。
 ///
+/// 占位模式按空白字符分词计数，与 `encode` 结果长度一致。
+/// 真实模式（EMBIT_HAS_GGML）应调用 ggml tokenizer API 返回子词 token 数。
 /// 空字符串返回 0。
 pub fn Tokenizer::count_tokens(self : Tokenizer, text : String) -> Int {
   ignore(self)
@@ -201,4 +207,77 @@ pub fn Tokenizer::estimate_context_usage(
   margin : Int,
 ) -> Int {
   self.count_tokens(text) + margin
+}
+
+// ===== ggml tokenizer 绑定 =====
+// 以下方法接受 GgmlContext 参数，调用 ggml tokenizer C API。
+// 真实模式（EMBIT_HAS_GGML）使用 BPE/SentencePiece 子词分词。
+// 占位模式（FFI 返回 -1 或空）回退到内置词表分词。
+
+///|
+/// 使用关联的 ggml 上下文编码文本为 token ID 序列。
+///
+/// 真实模式调用 ggml tokenizer C API（BPE/SentencePiece 子词分词）。
+/// 占位模式回退到内置词表分词（`encode`）。
+pub fn Tokenizer::encode_with_ggml(
+  self : Tokenizer,
+  ctx : GgmlContext,
+  text : String,
+) -> Array[Int] raise @core.RobotError {
+  let n = embit_ggml_tokenize(ctx, @utf8.encode(text))
+  if n > 0 {
+    let tokens : Array[Int] = []
+    for i in 0..<n {
+      tokens.push(embit_ggml_get_token_id(ctx, i))
+    }
+    self.encode_count = self.encode_count + 1
+    return tokens
+  }
+  self.encode(text)
+}
+
+///|
+/// 使用关联的 ggml 上下文解码 token ID 序列为文本。
+///
+/// 真实模式调用 ggml tokenizer C API 逐个解码并拼接。
+/// 占位模式回退到内置词表解码（`decode`）。
+pub fn Tokenizer::decode_with_ggml(
+  self : Tokenizer,
+  ctx : GgmlContext,
+  token_ids : Array[Int],
+) -> String {
+  if token_ids.length() == 0 {
+    return ""
+  }
+  let mut result = ""
+  let mut all_decoded = true
+  for id in token_ids {
+    let piece = embit_ggml_detokenize(ctx, id)
+    if piece.length() == 0 {
+      all_decoded = false
+      break
+    }
+    result += @utf8.decode_lossy(piece)
+  }
+  if all_decoded && result.length() > 0 {
+    return result
+  }
+  self.decode(token_ids)
+}
+
+///|
+/// 使用关联的 ggml 上下文统计文本 token 数。
+///
+/// 真实模式返回 ggml tokenizer 的子词 token 数。
+/// 占位模式回退到空白字符分词计数（`count_tokens`）。
+pub fn Tokenizer::count_tokens_with_ggml(
+  self : Tokenizer,
+  ctx : GgmlContext,
+  text : String,
+) -> Int {
+  let n = embit_ggml_tokenize(ctx, @utf8.encode(text))
+  if n > 0 {
+    return n
+  }
+  self.count_tokens(text)
 }
