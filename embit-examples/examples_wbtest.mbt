@@ -414,3 +414,77 @@ test "SafetyController - emergency stop rejects all" {
   assert_false(safety.is_emergency_stopped())
   safety.check_all(commands)
 }
+
+// ===== Phase 5 生产硬化测试 =====
+
+///|
+/// 性能调优 Demo 应完整执行无异常。
+test "integration - performance_tuning_demo runs successfully" {
+  performance_tuning_demo()
+}
+
+///|
+/// 监控告警 Demo 应完整执行无异常。
+test "integration - monitoring_alert_demo runs successfully" {
+  monitoring_alert_demo()
+}
+
+///|
+/// 安全认证 Demo 应完整执行无异常。
+test "integration - safety_certification_demo runs successfully" {
+  safety_certification_demo()
+}
+
+///|
+/// ControlLoopBenchmark 应正确测量控制环路性能。
+test "ControlLoopBenchmark - measures loop performance" {
+  let bench = @control.ControlLoopBenchmark::new(1000.0, 100)
+  let pid = @control.PIDController::new(2.0, 0.5, 0.05)
+  pid.set_output_limits(-5.0, 5.0)
+  let mut pos = 0.0
+  let result = bench.run(fn(_i) {
+    let output = pid.update(1.0, pos, 0.001)
+    pos = pos + output * 0.001
+  })
+  assert_eq(result.iterations, 100)
+  assert_true(result.average_latency >= 0.0)
+  assert_true(result.max_latency >= result.min_latency)
+}
+
+///|
+/// AlertSystem 应正确检测多级告警。
+test "AlertSystem - detects multi-level alerts" {
+  let alert_system = @control.AlertSystem::new(2.0, 0.1, 0.1)
+  // 正常值不告警
+  alert_system.check_joint_velocity("j1", 1.0, 0.0)
+  assert_eq(alert_system.alert_count(), 0)
+  // 超限值告警
+  alert_system.check_joint_velocity("j1", 3.0, 0.1)
+  assert_true(alert_system.alert_count() > 0)
+  // 严重超限触发 Critical
+  alert_system.check_joint_velocity("j1", 5.0, 0.2)
+  assert_true(alert_system.critical_count() > 0)
+}
+
+///|
+/// CollisionDetector 应正确检测碰撞。
+test "CollisionDetector - detects collisions" {
+  let detector = @control.CollisionDetector::new(0.05)
+  detector.add_obstacle(0.3, 0.2, 0.1)
+  assert_eq(detector.obstacle_count(), 1)
+  let result = detector.check_all()
+  assert_false(result.self_collision)
+  assert_false(result.environment_collision)
+  detector.clear_obstacles()
+  assert_eq(detector.obstacle_count(), 0)
+}
+
+///|
+/// SafetyCertification 应生成 ISO 10218 合规报告。
+test "SafetyCertification - generates ISO 10218 report" {
+  let robot_model = @core.RobotBuilder::arm_6dof()
+  let cert = @control.SafetyCertification::new(robot_model)
+  let report = cert.certification_report(true, true, true)
+  assert_eq(report.standard, "ISO 10218-1")
+  assert_true(report.checks.length() > 0)
+}

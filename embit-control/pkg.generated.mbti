@@ -12,6 +12,41 @@ import {
 // Errors
 
 // Types and methods
+pub(all) struct Alert {
+  level : AlertLevel
+  message : String
+  timestamp : Double
+  source : String
+}
+
+pub(all) enum AlertLevel {
+  Info
+  Warning
+  Error
+  Critical
+} derive(Eq, @debug.Debug)
+pub fn AlertLevel::equal(Self, Self) -> Bool
+pub fn AlertLevel::not_equal(Self, Self) -> Bool
+pub fn AlertLevel::to_repr(Self) -> @debug.Repr
+
+pub struct AlertSystem {
+  mut alerts : Array[Alert]
+  mut alert_count : Int
+  joint_velocity_threshold : Double
+  communication_timeout_threshold : Double
+  inference_latency_threshold : Double
+}
+pub fn AlertSystem::add_alert(Self, AlertLevel, String, String, Double) -> Unit
+pub fn AlertSystem::alert_count(Self) -> Int
+pub fn AlertSystem::alerts(Self) -> Array[Alert]
+pub fn AlertSystem::check_communication(Self, Double, Double) -> Unit
+pub fn AlertSystem::check_inference(Self, Double, Double) -> Unit
+pub fn AlertSystem::check_joint_velocity(Self, String, Double, Double) -> Unit
+pub fn AlertSystem::clear(Self) -> Unit
+pub fn AlertSystem::critical_count(Self) -> Int
+pub fn AlertSystem::default() -> Self
+pub fn AlertSystem::new(Double, Double, Double) -> Self
+
 pub struct CartesianController[IK, FK] {
   ik_solver : IK
   fk_solver : FK
@@ -40,6 +75,50 @@ pub(all) struct CartesianWaypoint {
 pub fn CartesianWaypoint::equal(Self, Self) -> Bool
 pub fn CartesianWaypoint::not_equal(Self, Self) -> Bool
 pub fn CartesianWaypoint::to_repr(Self) -> @debug.Repr
+
+pub(all) struct CertificationReport {
+  standard : String
+  checks : Array[ComplianceCheck]
+  overall_passed : Bool
+}
+
+pub struct CollisionDetector {
+  safety_distance : Double
+  mut joint_positions : Array[(String, Double)]
+  mut obstacle_positions : Array[(Double, Double, Double)]
+}
+pub fn CollisionDetector::add_obstacle(Self, Double, Double, Double) -> Unit
+pub fn CollisionDetector::check_all(Self) -> CollisionResult
+pub fn CollisionDetector::check_environment_collision(Self) -> CollisionResult
+pub fn CollisionDetector::check_self_collision(Self) -> CollisionResult
+pub fn CollisionDetector::clear_obstacles(Self) -> Unit
+pub fn CollisionDetector::new(Double) -> Self
+pub fn CollisionDetector::obstacle_count(Self) -> Int
+pub fn CollisionDetector::safety_distance(Self) -> Double
+pub fn CollisionDetector::update_joints(Self, Array[(String, Double)]) -> Unit
+
+pub(all) struct CollisionResult {
+  self_collision : Bool
+  environment_collision : Bool
+  min_distance : Double
+  collision_pairs : Array[(String, String)]
+}
+
+pub(all) struct ComplianceCheck {
+  name : String
+  passed : Bool
+  detail : String
+}
+
+pub struct ControlLoopBenchmark {
+  target_frequency : Double
+  iteration_count : Int
+  latencies : Array[Double]
+}
+pub fn ControlLoopBenchmark::iteration_count(Self) -> Int
+pub fn ControlLoopBenchmark::new(Double, Int) -> Self
+pub fn ControlLoopBenchmark::run(Self, (Int) -> Unit) -> LoopBenchmarkResult
+pub fn ControlLoopBenchmark::target_frequency(Self) -> Double
 
 pub(all) struct DHParam {
   a : Double
@@ -154,6 +233,16 @@ pub fn LegIKSolver::solve_ik_with_seed(Self, Pose, Array[@embit-core.JointState]
 pub fn LegIKSolver::solve_planar(Self, Double, Double) -> (Double, Double) raise @embit-core.RobotError
 pub fn LegIKSolver::solve_planar_with_seed(Self, Double, Double, Double) -> (Double, Double) raise @embit-core.RobotError
 
+pub(all) struct LoopBenchmarkResult {
+  iterations : Int
+  total_time : Double
+  average_latency : Double
+  max_latency : Double
+  min_latency : Double
+  jitter_p99 : Double
+  average_frequency : Double
+}
+
 pub struct MotionController {
   model : @embit-core.RobotModel
   estimator : StateEstimator
@@ -200,6 +289,21 @@ pub fn Pose::equal(Self, Self) -> Bool
 pub fn Pose::new(Double, Double, Double, Double, Double, Double) -> Self
 pub fn Pose::not_equal(Self, Self) -> Bool
 pub fn Pose::to_repr(Self) -> @debug.Repr
+
+pub struct SafetyCertification {
+  max_speed_limit : Double
+  max_force_limit : Double
+  model : @embit-core.RobotModel
+}
+pub fn SafetyCertification::certification_report(Self, Bool, Bool, Bool) -> CertificationReport
+pub fn SafetyCertification::check_collision_detection(Self, Bool) -> ComplianceCheck
+pub fn SafetyCertification::check_force_limit(Self) -> ComplianceCheck
+pub fn SafetyCertification::check_joint_limits(Self) -> ComplianceCheck
+pub fn SafetyCertification::check_protective_stop(Self, Bool, Bool) -> ComplianceCheck
+pub fn SafetyCertification::check_speed_limit(Self) -> ComplianceCheck
+pub fn SafetyCertification::max_force_limit(Self) -> Double
+pub fn SafetyCertification::max_speed_limit(Self) -> Double
+pub fn SafetyCertification::new(@embit-core.RobotModel) -> Self
 
 pub struct SafetyController {
   limits : @embit-core.SafetyLimits
