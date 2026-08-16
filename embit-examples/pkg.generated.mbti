@@ -14,6 +14,8 @@ pub fn cartesian_control_demo() -> Unit raise @embit-core.RobotError
 
 pub fn demo_skeleton() -> Unit
 
+pub fn emergency_stop_demo() -> Unit raise @embit-core.RobotError
+
 pub fn full_stack_demo() -> Unit raise @embit-core.RobotError
 
 pub fn humanoid_walk() -> Unit raise @embit-core.RobotError
@@ -26,7 +28,13 @@ pub fn multi_robot_scene_demo() -> Unit raise @embit-core.RobotError
 
 pub fn quadruped_avoid() -> Unit raise @embit-core.RobotError
 
+pub fn real_robot_demo() -> Unit raise @embit-core.RobotError
+
+pub fn safety_interlock_demo() -> Unit raise @embit-core.RobotError
+
 pub fn sensor_fusion_demo() -> Unit
+
+pub fn sim2real_consistency_demo() -> Unit raise @embit-core.RobotError
 
 pub fn sim_closed_loop_demo() -> Unit raise @embit-core.RobotError
 

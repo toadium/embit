@@ -294,3 +294,123 @@ test "integration - vla_sim_execution_demo runs successfully" {
 test "integration - multi_robot_scenario_demo runs successfully" {
   multi_robot_scenario_demo()
 }
+
+// ===== Phase 4.2 真机联调测试 =====
+
+///|
+/// 真机控制 Demo 应完整执行无异常。
+test "integration - real_robot_demo runs successfully" {
+  real_robot_demo()
+}
+
+///|
+/// Sim2Real 一致性 Demo 应完整执行无异常。
+test "integration - sim2real_consistency_demo runs successfully" {
+  sim2real_consistency_demo()
+}
+
+///|
+/// 安全联锁 Demo 应完整执行无异常。
+test "integration - safety_interlock_demo runs successfully" {
+  safety_interlock_demo()
+}
+
+///|
+/// 紧急停止 Demo 应完整执行无异常。
+test "integration - emergency_stop_demo runs successfully" {
+  emergency_stop_demo()
+}
+
+///|
+/// RealRobot 应正确实现 Robot trait。
+test "RealRobot - implements Robot trait" {
+  let model_info = @core.RobotModelInfo::{
+    name: "test_robot",
+    version: "1.0",
+    dof: 6,
+    urdf_path: "models/test.urdf",
+  }
+  let robot = @core.RealRobot::connect("can0", model_info)
+  assert_true(robot.is_connected())
+  let info = robot.get_model_info()
+  assert_eq(info.name, "test_robot")
+  assert_eq(info.dof, 6)
+  let readings = robot.get_sensor_readings()
+  assert_eq(readings.length(), 0)
+  robot.disconnect()
+  assert_false(robot.is_connected())
+}
+
+///|
+/// RealRobot 紧急停止应拒绝动作。
+test "RealRobot - emergency stop rejects actions" {
+  let model_info = @core.RobotModelInfo::{
+    name: "test",
+    version: "1.0",
+    dof: 6,
+    urdf_path: "",
+  }
+  let robot = @core.RealRobot::connect("can0", model_info)
+  robot.emergency_stop()
+  assert_true(robot.is_emergency_stopped())
+  let commands : Array[@core.ActionCommand] = [
+    { joint_commands: [("j1", 0.5)], timestamp: 0.0 },
+  ]
+  try robot.execute_actions(commands) catch {
+    SafetyLimitViolation(msg) => assert_true(msg.contains("emergency"))
+    _ => fail("expected SafetyLimitViolation")
+  } noraise {
+    _ => fail("expected SafetyLimitViolation")
+  }
+  assert_eq(robot.execution_count(), 0)
+  robot.reset_emergency_stop()
+  robot.execute_actions(commands)
+  assert_eq(robot.execution_count(), 1)
+}
+
+///|
+/// SafetyController 应检测速度超限。
+test "SafetyController - detects velocity violation" {
+  let limits = @core.SafetyLimits::{
+    max_joint_velocity: 1.0,
+    max_joint_effort: 100.0,
+    collision_check_distance: 0.01,
+  }
+  let safety = @control.SafetyController::new(limits, [])
+  let commands : Array[@core.ActionCommand] = [
+    { joint_commands: [("j1", 0.0)], timestamp: 0.0 },
+    { joint_commands: [("j1", 10.0)], timestamp: 0.01 },
+  ]
+  try safety.check_all(commands) catch {
+    SafetyLimitViolation(msg) => assert_true(msg.contains("velocity"))
+    _ => fail("expected velocity violation")
+  } noraise {
+    _ => fail("expected velocity violation")
+  }
+  assert_true(safety.violation_count() > 0)
+}
+
+///|
+/// SafetyController 紧急停止应拒绝所有指令。
+test "SafetyController - emergency stop rejects all" {
+  let limits = @core.SafetyLimits::{
+    max_joint_velocity: 1.0,
+    max_joint_effort: 100.0,
+    collision_check_distance: 0.01,
+  }
+  let safety = @control.SafetyController::new(limits, [])
+  safety.emergency_stop()
+  assert_true(safety.is_emergency_stopped())
+  let commands : Array[@core.ActionCommand] = [
+    { joint_commands: [("j1", 0.1)], timestamp: 0.0 },
+  ]
+  try safety.check_all(commands) catch {
+    SafetyLimitViolation(msg) => assert_true(msg.contains("emergency"))
+    _ => fail("expected e-stop violation")
+  } noraise {
+    _ => fail("expected e-stop violation")
+  }
+  safety.reset_emergency_stop()
+  assert_false(safety.is_emergency_stopped())
+  safety.check_all(commands)
+}

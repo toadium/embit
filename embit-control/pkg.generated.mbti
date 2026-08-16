@@ -201,6 +201,26 @@ pub fn Pose::new(Double, Double, Double, Double, Double, Double) -> Self
 pub fn Pose::not_equal(Self, Self) -> Bool
 pub fn Pose::to_repr(Self) -> @debug.Repr
 
+pub struct SafetyController {
+  limits : @embit-core.SafetyLimits
+  joint_limits : Array[(Double, Double)]
+  mut emergency_stopped : Bool
+  mut violation_count : Int
+  mut last_violation : String
+}
+pub fn SafetyController::check_all(Self, Array[@embit-core.ActionCommand]) -> Unit raise @embit-core.RobotError
+pub fn SafetyController::check_collision(Self, Array[@embit-core.ActionCommand]) -> Unit raise @embit-core.RobotError
+pub fn SafetyController::check_effort_limits(Self, Array[@embit-core.ActionCommand]) -> Unit raise @embit-core.RobotError
+pub fn SafetyController::check_joint_limits(Self, Array[@embit-core.ActionCommand]) -> Unit raise @embit-core.RobotError
+pub fn SafetyController::check_velocity_limits(Self, Array[@embit-core.ActionCommand]) -> Unit raise @embit-core.RobotError
+pub fn SafetyController::emergency_stop(Self) -> Unit
+pub fn SafetyController::from_model(@embit-core.RobotModel) -> Self
+pub fn SafetyController::is_emergency_stopped(Self) -> Bool
+pub fn SafetyController::last_violation(Self) -> String
+pub fn SafetyController::new(@embit-core.SafetyLimits, Array[(Double, Double)]) -> Self
+pub fn SafetyController::reset_emergency_stop(Self) -> Unit
+pub fn SafetyController::violation_count(Self) -> Int
+
 pub struct SensorFusion {
   alpha : Double
   mut orientation : Double

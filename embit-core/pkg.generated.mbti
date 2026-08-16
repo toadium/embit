@@ -134,6 +134,29 @@ pub fn Quaternion::rotate_point(Self, Double, Double, Double) -> (Double, Double
 pub fn Quaternion::to_euler(Self) -> (Double, Double, Double)
 pub fn Quaternion::to_repr(Self) -> @debug.Repr
 
+pub struct RealRobot {
+  model_info : RobotModelInfo
+  mut connected : Bool
+  mut emergency_stopped : Bool
+  mut sensor_readings : Array[SensorReading]
+  executed_commands : Array[ActionCommand]
+  mut execution_count : Int
+  address : String
+}
+pub fn RealRobot::address(Self) -> String
+pub fn RealRobot::connect(String, RobotModelInfo) -> Self
+pub fn RealRobot::disconnect(Self) -> Unit
+pub fn RealRobot::emergency_stop(Self) -> Unit
+pub fn RealRobot::execute_actions(Self, Array[ActionCommand]) -> Unit raise RobotError
+pub fn RealRobot::executed_commands(Self) -> Array[ActionCommand]
+pub fn RealRobot::execution_count(Self) -> Int
+pub fn RealRobot::get_model_info(Self) -> RobotModelInfo
+pub fn RealRobot::get_sensor_readings(Self) -> Array[SensorReading]
+pub fn RealRobot::is_connected(Self) -> Bool
+pub fn RealRobot::is_emergency_stopped(Self) -> Bool
+pub fn RealRobot::reset_emergency_stop(Self) -> Unit
+pub fn RealRobot::update_sensors(Self, Array[SensorReading]) -> Unit
+
 pub struct RobotBuilder {
   _sealed : Unit
 }
