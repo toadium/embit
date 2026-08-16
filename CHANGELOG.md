@@ -5,6 +5,129 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to semantic versioning.
 
+## [0.5.0] — 2026-08-16
+
+### Added — Phase 5 生产硬化
+
+#### 性能调优（embit-control）
+- `ControlLoopBenchmark`：控制环路延迟 / 抖动 / P99 / 频率测量，`LoopBenchmarkResult` 结果结构
+- `benchmark.mbt`：基准测试工具，支持单次 / 批量采样 + 统计聚合
+
+#### 监控告警（embit-control）
+- `AlertSystem`：多级告警（Info / Warning / Error / Critical）+ 关节速度检测 + 通信超时检测 + 推理延迟检测
+- `alert.mbt`：告警历史记录 + 告警回调 + 告警过滤
+
+#### 安全认证（embit-control）
+- `CollisionDetector`：自碰撞检测 + 环境碰撞检测 + 障碍物管理（添加 / 移除 / 查询）
+- `SafetyCertification`：ISO 10218 合规检查（速度 / 力矩 / 保护停止 / 碰撞检测 / 关节限位）+ `CertificationReport` 报告结构
+- `safety_cert.mbt`：认证报告生成 + 合规项逐条检查 + 总体合规判定
+
+#### 生产 Demo（embit-examples）
+- `performance_tuning_demo`：控制环路基准测试 + 批量推理性能分析
+- `monitoring_alert_demo`：AlertSystem 多级告警 + Selene 面板实时监控 + 数据录制
+- `safety_certification_demo`：ISO 10218 合规报告生成 + 碰撞检测验证
+
+### 验证
+- `moon check --warn-list +all --deny-warn`：0 错误，0 警告
+- `moon test --target native`：420 个测试全部通过
+- `moon fmt --check`：格式化通过
+- `moon info` + `git diff --exit-code`：接口一致性通过
+
+## [0.4.0] — 2026-08-16
+
+### Added — Phase 4.2 真机联调
+
+#### 真机硬件抽象（embit-core）
+- `RealRobot`：实现 `Robot` trait 的真机硬件抽象层
+  - `connect` / `disconnect` / `emergency_stop` / `is_connected` / `is_emergency_stopped`
+  - `execute_actions` / `get_sensor_readings` / `get_model_info`
+  - 指令记录追踪（`command_log` / `total_commands`）
+
+#### 安全联锁（embit-control）
+- `SafetyController`：综合安全控制器
+  - 关节限位检查（`check_joint_limits`）
+  - 速度限制检查（`check_velocity_limits`）
+  - 力矩限制检查（`check_torque_limits`）
+  - 碰撞检测（`check_collision`）
+  - 紧急停止协议（`emergency_stop` / `reset` / `is_emergency_stopped`）
+  - 综合检查（`check_all`）
+
+#### Sim2Real Demo（embit-examples）
+- `real_robot_demo`：真机控制（RealRobot + SafetyController + 轨迹执行）
+- `sim2real_consistency_demo`：Sim2Real 一致性验证（相同轨迹在仿真与真机执行对比）
+- `safety_interlock_demo`：安全联锁（速度超限检测 + 紧急停止 + 重置恢复）
+- `emergency_stop_demo`：紧急停止协议（触发→拒绝→重置→恢复）
+
+### Added — Phase 4.1 仿真集成测试
+
+#### 仿真集成 Demo（embit-examples）
+- `sim_scene_setup_demo`：Gazebo 场景搭建（URDF 加载 + 多模型 spawn + 传感器订阅）
+- `sim_closed_loop_demo`：100 步仿真闭环（传感器→状态估计→PID→轨迹规划→动作发布→步进→录制）
+- `vla_sim_execution_demo`：VLA 推理集成（相机图像→ggml 推理→动作序列→仿真执行）
+- `multi_robot_scenario_demo`：多机型场景管理（动态加载/卸载 + 多机器人协调）
+
+### 验证
+- `moon check --warn-list +all --deny-warn`：0 错误，0 警告
+- `moon test --target native`：413 个测试全部通过
+- `moon fmt --check`：格式化通过
+
+## [0.3.0] — 2026-08-15
+
+### Added — Phase 3.1 Selene 可视化引擎 FFI 接入
+
+#### FFI 条件编译（embit-view）
+- `selene.h`：Selene 引擎 C 接口声明（25 个函数：引擎 / 场景 / 机器人 / 视图 / 录制 / 回放 / 参数调优）
+- `selene_wrapper.c`：真实 Selene API wrapper（`#ifdef EMBIT_HAS_SELENE` 启用）
+- `view_stub.c`：条件编译 FFI 入口（无库环境返回占位，有库环境调用真实 API）
+- `ffi.mbt`：extern "c" 声明（21 个 FFI 函数）
+- `scripts/prepare.py`：Selene 库检测 + 编译 + moon.pkg 配置自动化
+
+#### 可视化能力增强（embit-view）
+- `ViewContext` 新增字段：`selene_engine` / `selene_scene` / `selene_robot` / `selene_view`
+- `render` / `record` / `playback` / `stop_recording` / `tune_parameter` 接入 FFI
+- 12 个查询方法：`is_recording` / `is_playing` / `get_recording_duration` / `get_playback_progress` / `get_engine_fps` / `get_engine_frame_count` / `get_scene_robot_count` / `get_view_width` / `get_view_height` / `get_view_camera_pos` / `get_view_camera_target` / `get_tunable_parameters`
+
+#### CI 集成
+- `.github/workflows/ci.yml`：新增 `ffi-view` 集成测试 job
+
+### 验证
+- `moon check --warn-list +all --deny-warn`：0 错误，0 警告
+- `moon test --target native`：401 个测试全部通过
+- `moon fmt --check`：格式化通过
+
+## [0.2.0] — 2026-08-15
+
+### Added — Phase 2 FFI 真实接入与条件编译架构
+
+#### 条件编译 wrapper 模式
+- 所有 FFI 包采用 C 层条件编译（`#ifdef EMBIT_HAS_IGNITION` / `EMBIT_HAS_GGML`），MoonBit 层无感知
+- 无库环境可编译通过（占位 stub 返回默认值），有库环境启用真实 API
+- `scripts/prepare.py`：统一库检测 + 编译 + moon.pkg 配置自动化
+
+#### embit-gazebo FFI 真实接入
+- `ignition_transport.h`：Ignition Transport C++ 接口声明
+- `gazebo_wrapper.cpp`：真实 Ignition Transport API wrapper（C++ → C 桥接）
+- `gazebo_stub.c`：条件编译 FFI 入口
+- 真实 API 填充：`connect` / `publish` / `subscribe` / `service_call` / 世界控制 / 场景管理
+
+#### embit-ggml FFI 真实接入
+- `ggml.h`：ggml/llama.cpp 接口声明
+- `ggml_wrapper.c`：真实 ggml API wrapper
+- `ggml_stub.c`：条件编译 FFI 入口
+- 真实 API 填充：`load` / `infer` / `batch_infer` / `set_backend` / `free`
+
+#### Tokenizer 真实实现
+- `tokenizer.mbt`：BPE 分词器真实实现（替换占位 stub）
+- `tokenizer_wrapper.c`：C 层分词器桥接
+
+#### CI 集成测试
+- `.github/workflows/ci.yml`：新增 `ffi-gazebo` / `ffi-ggml` 集成测试 job
+
+### 验证
+- `moon check --warn-list +all --deny-warn`：0 错误，0 警告
+- `moon test --target native`：390 个测试全部通过
+- `moon fmt --check`：格式化通过
+
 ## [0.1.2] — 2026-08-14
 
 ### Added — Phase 10 覆盖率治理与性能基准
@@ -149,7 +272,7 @@ and this project adheres to semantic versioning.
 
 #### embit-examples（示例工程增强）
 - 三类 Demo 增加安全联锁检查（`check_safety`）
-- `full_stack_demo`：全栈综合 Demo，串联框架全部核心功能（RobotBuilder + GazeboRobot + 世界控制 + 场景管理 + JointGroup + CartesianController + PID + SensorFusion + Timer + DataSeries + ViewPanel + VLA + 安全联锁）
+- `full_stack_demo`：全栈综合 Demo，串联框架全部核心功能
 
 ### Added — Phase 5 开源发布与生态建设
 

@@ -23,7 +23,7 @@ Embit 是基于 MoonBit 的通用具身智能机器人全栈开发框架，打�
 
 ### 环境要求
 
-- MoonBit 工具链 >= 0.10.0
+- MoonBit 工具链 >= 0.1.20260807
 - Ignition Gazebo Fortress / Harmonic
 - CMake >= 3.20（FFI 编译必需）
 - Git LFS（模型文件下载必需）
@@ -98,7 +98,7 @@ embit/
 4. 推送到分支（`git push origin feature/xxx`）
 5. 提交 Pull Request
 
-代码规范：遵循 MoonBit 官方风格指南，所有 PR 需通过 `moon check` 与 `moon test`。
+代码规范：遵循 MoonBit 官方风格指南，所有 PR 需通过 `moon check --warn-list +all --deny-warn` 与 `moon test --target native`。
 
 ## 许可证
 

@@ -6,12 +6,14 @@
 
 ### 必要工具
 
-- [MoonBit 工具链](https://www.moonbitlang.com/) >= 0.1.20260713
+- [MoonBit 工具链](https://www.moonbitlang.com/) >= 0.1.20260807（`preferred_target = "native"`）
 - C 编译器（FFI native-stub 编译必需，Windows 下随 MoonBit 附带 TCC）
 
 ### 可选工具
 
 - Ignition Gazebo Fortress / Harmonic（仿真模式）
+- ggml / llama.cpp（VLA 推理加速）
+- Selene SDK（可视化引擎）
 - 支持 CUDA / Metal 的 GPU 设备（推理加速）
 
 ### 环境搭建
@@ -22,21 +24,23 @@ git clone https://github.com/toadium/embit.git
 cd embit
 
 # 验证环境
-moon check
-moon test
+moon check --warn-list +all --deny-warn
+moon test --target native
 ```
 
 ## 项目结构
 
 ```
 embit/
-├── embit-core/       # 核心基础库（RobotError / JointState / RobotModel / Robot trait）
-├── embit-gazebo/     # 仿真通信 SDK（GazeboClient + GazeboRobot + 场景管理）
-├── embit-ggml/       # VLA 推理 SDK（VlaModel + Tensor + Tokenizer）
-├── embit-control/    # 运动控制（轨迹规划 + IK/FK + PID + 阻抗 + 笛卡尔控制）
-├── embit-view/       # 可视化面板（Widget / 录制回放 / DataSeries）
-├── embit-examples/   # 示例工程（11 个 Demo）
-└── docs/             # 项目文档
+├── embit-core/       # 核心基础库（RobotError / JointState / RobotModel / Robot trait / RobotBuilder / RealRobot）
+├── embit-gazebo/     # 仿真通信 SDK（GazeboClient + GazeboRobot + 世界控制 + 场景管理 + FFI）
+├── embit-ggml/       # VLA 推理 SDK（VlaModel + Tensor + Tokenizer + FFI）
+├── embit-control/    # 运动控制（轨迹规划 + IK/FK + 卡尔曼滤波 + PID + 阻抗 + 笛卡尔控制
+│                     #   + SafetyController + AlertSystem + CollisionDetector + SafetyCertification + Benchmark）
+├── embit-view/       # 可视化面板（Widget / 录制回放 / 实时监控 / DataSeries + FFI(Selene)）
+├── embit-examples/   # 示例工程（21 个 Demo）
+├── docs/             # 项目文档
+└── .github/          # CI/CD + Issue/PR 模板
 ```
 
 ## 开发流程
@@ -56,12 +60,14 @@ git checkout -b feature/your-feature
 
 ### 3. 验证
 
-提交前必须通过以下检查：
+提交前必须通过以下检查（零警告策略）：
 
 ```bash
-moon check    # 编译检查（0 错误）
-moon test     # 全量测试（全部通过）
-moon fmt      # 代码格式化
+moon check --warn-list +all --deny-warn   # 编译检查（0 错误，0 警告）
+moon test --target native                  # 全量测试（全部通过）
+moon fmt --check                           # 代码格式化检查
+moon info                                  # 接口生成
+git diff --exit-code                       # 接口一致性（pkg.generated.mbti 无变更）
 ```
 
 ### 4. 提交
@@ -97,6 +103,33 @@ moon fmt      # 代码格式化
 - struct 字面量使用 `{ field: value, }` 语法
 - 泛型函数使用 `fn[T : Trait] func_name(...)` 新语法
 - `extend` 声明用于 trait 方法的直接调用
+- `for` 循环不支持元组解构，需先取元素再 `let (a, b) = item`
+- `raise` 是关键字，不能用作方法名
+- 浮点字面量 `1e9` 不合法，需写 `1000000000.0`
+
+### FFI 条件编译
+
+所有 FFI 包采用 C 层条件编译 wrapper 模式：
+
+```c
+// *_stub.c
+#ifdef EMBIT_HAS_XXX
+  // 调用真实 API
+  return real_api(args);
+#else
+  // 占位返回默认值
+  return 0;
+#endif
+```
+
+MoonBit 层无感知，extern "c" 签名不变。新增 FFI 包需：
+1. 创建 `xxx.h`（C 接口声明）
+2. 创建 `xxx_wrapper.c`（真实 API wrapper）
+3. 创建 `*_stub.c`（条件编译入口）
+4. 创建 `ffi.mbt`（extern "c" 声明）
+5. 创建 `scripts/prepare.py`（库检测脚本）
+6. 更新 `moon.pkg`（native-stub + supported_targets）
+7. 更新 `.github/workflows/ci.yml`（FFI 集成测试 job）
 
 ### 文档注释
 
@@ -118,6 +151,7 @@ pub fn my_function(x : Double) -> Double {
 - 测试名称：`"Module - behavior description"`
 - 使用 `assert_true` / `assert_eq` / `assert_false`
 - 错误测试使用 `try ... catch { ... } noraise { ... }`
+- `assert_*` 和 `fail` 抛出 `Failure` 而非 `RobotError`，不能在 `raise RobotError` 函数中使用
 
 ## 模块依赖
 
@@ -128,7 +162,7 @@ embit-examples → embit-view → embit-control → embit-gazebo → embit-core
 ```
 
 - `embit-core` 无外部依赖（仅 MoonBit 标准库）
-- `embit-gazebo` / `embit-ggml` 依赖 FFI（native-only）
+- `embit-gazebo` / `embit-ggml` / `embit-view` 依赖 FFI（native-only）
 - 上层模块依赖下层模块，不可反向依赖
 
 ## 许可证
