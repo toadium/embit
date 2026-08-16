@@ -111,44 +111,83 @@ pub fn PlaybackStream::progress(self : PlaybackStream) -> Double {
 }
 
 ///|
+/// WidgetType 转 FFI 整数编码。
+///
+/// 0=JointPlot, 1=SensorDisplay, 2=View3D, 3=LogPanel, 4=ParameterTuner。
+fn widget_type_to_int(t : WidgetType) -> Int {
+  match t {
+    JointPlot => 0
+    SensorDisplay => 1
+    View3D => 2
+    LogPanel => 3
+    ParameterTuner => 4
+  }
+}
+
+///|
 /// 监控面板：实时状态观测、数据回放与参数在线调优。
 ///
-/// Phase 1 为占位实现，Phase 2 将集成 Selene 可视化引擎。
+/// 通过 FFI 绑定 Selene 可视化引擎，提供 GUI 渲染、数据录制与回放。
+/// 条件编译：EMBIT_HAS_SELENE 启用真实 Selene 引擎，否则占位回退（仅记录计数）。
 pub struct ViewPanel {
   model_info : @core.RobotModelInfo
   widgets : Array[Widget]
   mut current_recording : RecordingHandle?
   parameters : Map[String, Double]
+  view_ctx : ViewContext
 }
 
 ///|
 /// 创建监控面板。
 pub fn ViewPanel::new() -> ViewPanel {
+  let view_ctx = embit_view_create(@utf8.encode(""), 0)
   {
     model_info: { name: "", version: "", dof: 0, urdf_path: "" },
     widgets: [],
     current_recording: None,
     parameters: Map([]),
+    view_ctx,
   }
 }
 
 ///|
 /// 创建监控面板并绑定机器人模型信息。
 pub fn ViewPanel::with_model(model_info : @core.RobotModelInfo) -> ViewPanel {
-  { model_info, widgets: [], current_recording: None, parameters: Map([]) }
+  let view_ctx = embit_view_create(
+    @utf8.encode(model_info.name),
+    model_info.dof,
+  )
+  {
+    model_info,
+    widgets: [],
+    current_recording: None,
+    parameters: Map([]),
+    view_ctx,
+  }
 }
 
 ///|
 /// 添加组件到面板。
+///
+/// 同步将 Widget 注册到 Selene 引擎（真实模式）或记录计数（占位模式）。
 pub fn ViewPanel::add_widget(self : ViewPanel, widget : Widget) -> Unit {
   self.widgets.push(widget)
+  ignore(
+    embit_view_add_widget(
+      self.view_ctx,
+      widget_type_to_int(widget.widget_type),
+      @utf8.encode(widget.title),
+      @utf8.encode(widget.topic),
+    ),
+  )
 }
 
 ///|
 /// 渲染面板：根据机器人状态更新所有组件。
 ///
-/// Phase 1 占位实现：仅验证组件列表非空。
-/// 真实实现将调用 Selene 引擎渲染 GUI。
+/// 真实模式调用 Selene 引擎渲染 GUI 帧；
+/// 占位模式仅更新渲染计数。
+/// 若当前正在录制，自动将帧推送到录制缓冲区。
 pub fn ViewPanel::render(
   self : ViewPanel,
   robot_state : Array[@core.JointState],
@@ -156,17 +195,41 @@ pub fn ViewPanel::render(
   if self.widgets.length() == 0 {
     raise SensorReadError("no widgets to render")
   }
-  ignore(robot_state)
+  // 逐关节更新状态到 Selene 引擎
+  for i, js in robot_state {
+    ignore(
+      embit_view_update_joint(
+        self.view_ctx,
+        i,
+        js.position,
+        js.velocity,
+        js.effort,
+      ),
+    )
+  }
+  // 渲染一帧
+  ignore(embit_view_render_frame(self.view_ctx))
+  // 若正在录制，自动捕获帧
+  match self.current_recording {
+    Some(handle) =>
+      if handle.is_active() {
+        handle.add_frame()
+        ignore(embit_view_record_add_frame(self.view_ctx))
+      }
+    None => ()
+  }
 }
 
 ///|
 /// 开始录制会话。
 ///
 /// `session_id` 为会话标识，用于后续回放检索。
+/// 真实模式通过 FFI 通知 Selene 引擎开始录制。
 pub fn ViewPanel::record(
   self : ViewPanel,
   session_id : String,
 ) -> RecordingHandle {
+  ignore(embit_view_record_start(self.view_ctx, @utf8.encode(session_id)))
   let handle = RecordingHandle::new(session_id)
   self.current_recording = Some(handle)
   handle
@@ -176,14 +239,21 @@ pub fn ViewPanel::record(
 /// 回放录制会话。
 ///
 /// 失败时抛出 `RobotError::SensorReadError`。
+/// 真实模式通过 FFI 打开 Selene 回放流。
 pub fn ViewPanel::playback(
   self : ViewPanel,
   handle : RecordingHandle,
 ) -> PlaybackStream raise @core.RobotError {
-  ignore(self)
   if handle.frames() == 0 {
     raise SensorReadError("no frames recorded for session \{handle.session_id}")
   }
+  ignore(
+    embit_view_playback_open(
+      self.view_ctx,
+      @utf8.encode(handle.session_id),
+      handle.frames(),
+    ),
+  )
   {
     session_id: handle.session_id,
     total_frames: handle.frames(),
@@ -193,9 +263,14 @@ pub fn ViewPanel::playback(
 
 ///|
 /// 停止当前录制。
+///
+/// 真实模式通过 FFI 通知 Selene 引擎停止录制。
 pub fn ViewPanel::stop_recording(self : ViewPanel) -> Unit {
   match self.current_recording {
-    Some(handle) => handle.stop()
+    Some(handle) => {
+      handle.stop()
+      ignore(embit_view_record_stop(self.view_ctx))
+    }
     None => ()
   }
 }
@@ -217,12 +292,14 @@ pub fn ViewPanel::get_model_info(self : ViewPanel) -> @core.RobotModelInfo {
 ///
 /// `name` 为参数名（如 `"kp"` / `"kd"` / `"max_velocity"`），`value` 为新值。
 /// 参数变更实时生效，无需重启面板。
+/// 真实模式通过 FFI 将参数推送到 Selene 调优面板。
 pub fn ViewPanel::tune_parameter(
   self : ViewPanel,
   name : String,
   value : Double,
 ) -> Unit {
   self.parameters[name] = value
+  ignore(embit_view_set_parameter(self.view_ctx, @utf8.encode(name), value))
 }
 
 ///|
@@ -263,4 +340,97 @@ pub fn ViewPanel::export_snapshot(self : ViewPanel) -> String {
   self.parameters.each(fn(name, value) { result += "  \{name} = \{value}\n" })
   result += "=== End Snapshot ==="
   result
+}
+
+// ===== Selene FFI 查询接口（用于测试验证 FFI 通道） =====
+
+///|
+/// 查询 Selene 上下文是否活跃。
+pub fn ViewPanel::is_active(self : ViewPanel) -> Bool {
+  embit_view_is_active(self.view_ctx) != 0
+}
+
+///|
+/// 查询渲染调用计数（FFI 通道验证）。
+pub fn ViewPanel::render_count(self : ViewPanel) -> Int {
+  embit_view_render_count(self.view_ctx)
+}
+
+///|
+/// 查询 FFI 侧已录制帧数。
+pub fn ViewPanel::record_frame_count(self : ViewPanel) -> Int {
+  embit_view_record_frame_count(self.view_ctx)
+}
+
+///|
+/// 查询 FFI 侧是否正在录制。
+pub fn ViewPanel::is_recording(self : ViewPanel) -> Bool {
+  embit_view_record_is_active(self.view_ctx) != 0
+}
+
+///|
+/// 查询 FFI 侧参数数量。
+pub fn ViewPanel::parameter_count(self : ViewPanel) -> Int {
+  embit_view_parameter_count(self.view_ctx)
+}
+
+///|
+/// 查询 FFI 侧 Widget 数量。
+pub fn ViewPanel::ffi_widget_count(self : ViewPanel) -> Int {
+  embit_view_widget_count(self.view_ctx)
+}
+
+///|
+/// 推送数据点到 Selene 时间序列。
+///
+/// `series_name` 为序列名，`timestamp`/`value` 为数据点。
+/// 真实模式将数据推送到 Selene 引擎进行实时绘图。
+pub fn ViewPanel::push_data(
+  self : ViewPanel,
+  series_name : String,
+  timestamp : Double,
+  value : Double,
+) -> Unit {
+  ignore(
+    embit_view_push_data(
+      self.view_ctx,
+      @utf8.encode(series_name),
+      timestamp,
+      value,
+    ),
+  )
+}
+
+///|
+/// 查询 FFI 侧数据点总数。
+pub fn ViewPanel::data_point_count(self : ViewPanel) -> Int {
+  embit_view_data_point_count(self.view_ctx)
+}
+
+///|
+/// 通过 FFI 前进回放帧。返回当前帧序号。
+pub fn ViewPanel::ffi_playback_next(self : ViewPanel) -> Int {
+  embit_view_playback_next_frame(self.view_ctx)
+}
+
+///|
+/// 通过 FFI 查询回放总帧数。
+pub fn ViewPanel::ffi_playback_total(self : ViewPanel) -> Int {
+  embit_view_playback_total_frames(self.view_ctx)
+}
+
+///|
+/// 通过 FFI 查询回放当前帧序号。
+pub fn ViewPanel::ffi_playback_current(self : ViewPanel) -> Int {
+  embit_view_playback_current_frame(self.view_ctx)
+}
+
+///|
+/// 通过 FFI 查询参数值。不存在时返回 `default_value`。
+pub fn ViewPanel::ffi_get_parameter(
+  self : ViewPanel,
+  name : String,
+  default_value : Double,
+) -> Double {
+  embit_view_get_parameter(self.view_ctx, @utf8.encode(name), default_value)
 }

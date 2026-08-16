@@ -1,6 +1,32 @@
 // embit-view：可视化调试面板
 // 基于 Selene 引擎打造实时监控面板，支持状态观测、数据回放、参数在线调优。
+// 通过 native-stub 编译 C 桥接代码，FFI 通道仅支持 native 后端。
+//
+// 条件编译架构：
+//   - 默认（无 EMBIT_HAS_SELENE）：占位回退，仅记录操作计数，用于无库环境编译与单元测试
+//   - 启用（EMBIT_HAS_SELENE）：调用真实 Selene 可视化引擎 C 接口
+//
+// 启用真实 API：
+//   python scripts/prepare.py --with-selene
+//   prepare.py 会编译 selene_wrapper.c 为静态库，
+//   并在此文件追加 link(native(...)) 配置（见下方注释块）。
+//
+// 真实链接配置模板（由 prepare.py 自动追加，勿手动编辑）：
+//   link(
+//     native(
+//       "stub-cc-flags": "-DEMBIT_HAS_SELENE",
+//       "cc-link-flags": "-L./lib -lembit_selene -lselene",
+//     )
+//   )
+
+supported_targets = "native"
+
 import {
   "walkzzz/embit/embit-core" @core,
+  "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/debug",
 }
+
+options(
+  "native-stub": [ "view_stub.c" ],
+)

@@ -58,21 +58,36 @@ pub fn RecordingHandle::is_active(Self) -> Bool
 pub fn RecordingHandle::new(String) -> Self
 pub fn RecordingHandle::stop(Self) -> Unit
 
+type ViewContext
+
 pub struct ViewPanel {
   model_info : @embit-core.RobotModelInfo
   widgets : Array[Widget]
   mut current_recording : RecordingHandle?
   parameters : Map[String, Double]
+  view_ctx : ViewContext
 }
 pub fn ViewPanel::add_widget(Self, Widget) -> Unit
+pub fn ViewPanel::data_point_count(Self) -> Int
 pub fn ViewPanel::export_snapshot(Self) -> String
+pub fn ViewPanel::ffi_get_parameter(Self, String, Double) -> Double
+pub fn ViewPanel::ffi_playback_current(Self) -> Int
+pub fn ViewPanel::ffi_playback_next(Self) -> Int
+pub fn ViewPanel::ffi_playback_total(Self) -> Int
+pub fn ViewPanel::ffi_widget_count(Self) -> Int
 pub fn ViewPanel::get_model_info(Self) -> @embit-core.RobotModelInfo
 pub fn ViewPanel::get_parameter(Self, String) -> Double?
+pub fn ViewPanel::is_active(Self) -> Bool
+pub fn ViewPanel::is_recording(Self) -> Bool
 pub fn ViewPanel::list_parameters(Self) -> Array[String]
 pub fn ViewPanel::new() -> Self
+pub fn ViewPanel::parameter_count(Self) -> Int
 pub fn ViewPanel::playback(Self, RecordingHandle) -> PlaybackStream raise @embit-core.RobotError
+pub fn ViewPanel::push_data(Self, String, Double, Double) -> Unit
 pub fn ViewPanel::record(Self, String) -> RecordingHandle
+pub fn ViewPanel::record_frame_count(Self) -> Int
 pub fn ViewPanel::render(Self, Array[@embit-core.JointState]) -> Unit raise @embit-core.RobotError
+pub fn ViewPanel::render_count(Self) -> Int
 pub fn ViewPanel::stop_recording(Self) -> Unit
 pub fn ViewPanel::tune_parameter(Self, String, Double) -> Unit
 pub fn ViewPanel::widget_count(Self) -> Int

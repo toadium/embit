@@ -13,7 +13,7 @@
 | 控制算法 | ✅ | DH/FK/IK/Kalman/PID/轨迹规划真实实现 |
 | 仿真通信 | ✅ | 条件编译 wrapper，`EMBIT_HAS_IGNITION` 启用真实 Ignition Transport |
 | VLA 推理 | ✅ | 条件编译 wrapper，`EMBIT_HAS_GGML` 启用真实 ggml/VLA 推理 |
-| 可视化 | ❌ | `view.mbt` 占位，不连接 Selene 引擎 |
+| 可视化 | ✅ | 条件编译 wrapper，`EMBIT_HAS_SELENE` 启用真实 Selene 引擎 |
 
 **结论**：控制算法层与 FFI 通道已生产就绪（条件编译架构），真实库链接由 `prepare.py` + CI gate 管理。Phase 2 完成，待真实库环境集成验证。
 
@@ -97,11 +97,11 @@
 
 **任务**：
 
-- [ ] 引入 Selene 引擎依赖（`moon add` 或 `native-stub`）
-- [ ] `ViewPanel::render`：调用 Selene 渲染面板
-- [ ] `ViewPanel::record`/`playback`：真实数据录制与回放
-- [ ] `DataSeries`：实时时间序列数据流接入
-- [ ] `Widget` 各类型渲染：`JointPlot`/`SensorDisplay`/`View3D`/`LogPanel`/`ParameterTuner`
+- [x] 引入 Selene 引擎依赖（`moon add` 或 `native-stub`）
+- [x] `ViewPanel::render`：调用 Selene 渲染面板
+- [x] `ViewPanel::record`/`playback`：真实数据录制与回放
+- [x] `DataSeries`：实时时间序列数据流接入
+- [x] `Widget` 各类型渲染：`JointPlot`/`SensorDisplay`/`View3D`/`LogPanel`/`ParameterTuner`
 
 **验收**：
 
@@ -231,7 +231,7 @@ Phase 5 (生产硬化) ◄────┘
 | TD-01 | `gazebo_stub.c:1` | Ignition Transport FFI 占位 | P0 | ✅ 已完成（条件编译 wrapper） |
 | TD-02 | `ggml_stub.c:1` | ggml/vla.cpp FFI 占位 | P0 | ✅ 已完成（条件编译 wrapper） |
 | TD-03 | `tokenizer.mbt:2` | 空格分词占位 | P0 | ✅ 已完成（ggml tokenizer 绑定） |
-| TD-04 | `view.mbt:116` | Selene 引擎未接入 | P1 |
+| TD-04 | `view.mbt:116` | Selene 引擎未接入 | P1 | ✅ 已完成（条件编译 wrapper） |
 | TD-05 | `ik.mbt:34` | IK 解算器仅骨架 | P1 | ✅ 已完成 |
 | TD-06 | `gazebo_robot.mbt:7` | 传感器读数占位返回空数组 | P1 | ✅ 已功能化 |
 | TD-07 | `pipeline_demos.mbt:160` | 传感器噪声省略 | P2 | ✅ 已添加 |

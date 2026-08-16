@@ -91,7 +91,7 @@ jobs:
   # 启用方式：
   #   1. workflow_dispatch: 勾选 ffi-integration 输入
   #   2. PR label: 添加 "ffi-integration" 标签
-  # 这些 job 安装真实 C 库，运行 prepare.py 启用 EMBIT_HAS_IGNITION/EMBIT_HAS_GGML，
+  # 这些 job 安装真实 C 库，运行 prepare.py 启用 EMBIT_HAS_IGNITION/EMBIT_HAS_GGML/EMBIT_HAS_SELENE，
   # 然后运行集成测试验证真实 FFI 通道。
 
   ffi-gazebo:
@@ -140,4 +140,27 @@ jobs:
         run: moon check --warn-list +all --deny-warn
       - name: Test with real ggml
         run: moon test --target native -p walkzzz/embit/embit-ggml
+
+  ffi-view:
+    name: FFI View (Selene) Integration
+    if: |
+      github.event_name == 'workflow_dispatch' && inputs.ffi-integration ||
+      contains(github.event.pull_request.labels.*.name, 'ffi-integration')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+      - name: Install Selene SDK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libselene-dev
+      - name: Prepare View FFI
+        run: python3 embit-view/scripts/prepare.py --with-selene
+      - name: Check with real Selene
+        run: moon check --warn-list +all --deny-warn
+      - name: Test with real Selene
+        run: moon test --target native -p walkzzz/embit/embit-view
 

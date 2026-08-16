@@ -258,3 +258,144 @@ test "ViewPanel - export_snapshot with sensor and log widgets" {
   assert_true(snapshot.contains("IMU Display"))
   assert_true(snapshot.contains("Debug Log"))
 }
+
+// ===== Selene FFI 通道测试 =====
+
+///|
+/// ViewPanel 创建后 FFI 上下文应活跃。
+test "ViewPanel - ffi context is active after creation" {
+  let panel = ViewPanel::new()
+  assert_true(panel.is_active())
+}
+
+///|
+/// with_model 创建的面板 FFI 上下文应活跃。
+test "ViewPanel - ffi context active with model" {
+  let panel = ViewPanel::with_model({
+    name: "humanoid",
+    version: "2.0",
+    dof: 12,
+    urdf_path: "models/humanoid.urdf",
+  })
+  assert_true(panel.is_active())
+}
+
+///|
+/// add_widget 后 FFI Widget 计数应同步。
+test "ViewPanel - ffi widget count syncs" {
+  let panel = ViewPanel::new()
+  assert_eq(panel.ffi_widget_count(), 0)
+  panel.add_widget({
+    widget_type: JointPlot,
+    title: "Joint 1",
+    topic: "/joints",
+  })
+  assert_eq(panel.ffi_widget_count(), 1)
+  panel.add_widget({ widget_type: View3D, title: "3D", topic: "/camera" })
+  assert_eq(panel.ffi_widget_count(), 2)
+}
+
+///|
+/// render 后 FFI 渲染计数应递增。
+test "ViewPanel - ffi render count increments" {
+  let panel = ViewPanel::new()
+  panel.add_widget({ widget_type: JointPlot, title: "Joint", topic: "/joints" })
+  let state : Array[@core.JointState] = [
+    { name: "j1", position: 0.1, velocity: 0.0, effort: 0.0 },
+  ]
+  assert_eq(panel.render_count(), 0)
+  panel.render(state)
+  assert_eq(panel.render_count(), 1)
+  panel.render(state)
+  assert_eq(panel.render_count(), 2)
+}
+
+///|
+/// record 后 FFI 录制状态应为活跃。
+test "ViewPanel - ffi record start sets recording state" {
+  let panel = ViewPanel::new()
+  assert_false(panel.is_recording())
+  let _ = panel.record("ffi_session_001")
+  assert_true(panel.is_recording())
+}
+
+///|
+/// stop_recording 后 FFI 录制状态应停止。
+test "ViewPanel - ffi record stop clears recording state" {
+  let panel = ViewPanel::new()
+  let _ = panel.record("ffi_session_002")
+  assert_true(panel.is_recording())
+  panel.stop_recording()
+  assert_false(panel.is_recording())
+}
+
+///|
+/// render 时若正在录制，FFI 帧计数应递增。
+test "ViewPanel - ffi render captures frames during recording" {
+  let panel = ViewPanel::new()
+  panel.add_widget({ widget_type: JointPlot, title: "Joint", topic: "/joints" })
+  let state : Array[@core.JointState] = [
+    { name: "j1", position: 0.0, velocity: 0.0, effort: 0.0 },
+  ]
+  let _ = panel.record("ffi_session_003")
+  assert_eq(panel.record_frame_count(), 0)
+  panel.render(state)
+  assert_eq(panel.record_frame_count(), 1)
+  panel.render(state)
+  assert_eq(panel.record_frame_count(), 2)
+  panel.stop_recording()
+  panel.render(state)
+  assert_eq(panel.record_frame_count(), 2)
+}
+
+///|
+/// tune_parameter 后 FFI 参数计数应递增。
+test "ViewPanel - ffi parameter count increments" {
+  let panel = ViewPanel::new()
+  assert_eq(panel.parameter_count(), 0)
+  panel.tune_parameter("kp", 100.0)
+  assert_eq(panel.parameter_count(), 1)
+  panel.tune_parameter("kd", 20.0)
+  assert_eq(panel.parameter_count(), 2)
+}
+
+///|
+/// push_data 后 FFI 数据点计数应递增。
+test "ViewPanel - ffi push_data increments data point count" {
+  let panel = ViewPanel::new()
+  assert_eq(panel.data_point_count(), 0)
+  panel.push_data("joint_0_position", 0.0, 1.0)
+  assert_eq(panel.data_point_count(), 1)
+  panel.push_data("joint_0_position", 0.1, 1.1)
+  panel.push_data("joint_0_position", 0.2, 1.2)
+  assert_eq(panel.data_point_count(), 3)
+}
+
+///|
+/// playback 后 FFI 回放应正确打开。
+test "ViewPanel - ffi playback opens correctly" {
+  let panel = ViewPanel::new()
+  panel.add_widget({ widget_type: JointPlot, title: "Joint", topic: "/joints" })
+  let state : Array[@core.JointState] = [
+    { name: "j1", position: 0.0, velocity: 0.0, effort: 0.0 },
+  ]
+  let handle = panel.record("ffi_session_004")
+  panel.render(state)
+  panel.render(state)
+  panel.render(state)
+  panel.stop_recording()
+  assert_eq(handle.frames(), 3)
+  let _ = panel.playback(handle)
+}
+
+///|
+/// 所有 WidgetType 的 FFI 编码应正确。
+test "ViewPanel - ffi all widget types" {
+  let panel = ViewPanel::new()
+  panel.add_widget({ widget_type: JointPlot, title: "JP", topic: "/t1" })
+  panel.add_widget({ widget_type: SensorDisplay, title: "SD", topic: "/t2" })
+  panel.add_widget({ widget_type: View3D, title: "V3", topic: "/t3" })
+  panel.add_widget({ widget_type: LogPanel, title: "LP", topic: "/t4" })
+  panel.add_widget({ widget_type: ParameterTuner, title: "PT", topic: "/t5" })
+  assert_eq(panel.ffi_widget_count(), 5)
+}
