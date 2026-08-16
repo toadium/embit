@@ -268,3 +268,29 @@ test "integration - full_stack_demo runs successfully" {
 test "integration - demo_skeleton runs successfully" {
   demo_skeleton()
 }
+
+// ===== Phase 4.1 仿真集成测试 =====
+
+///|
+/// 仿真场景搭建 Demo 应完整执行无异常。
+test "integration - sim_scene_setup_demo runs successfully" {
+  sim_scene_setup_demo()
+}
+
+///|
+/// 仿真闭环 Demo 应完整执行 100 步无异常。
+test "integration - sim_closed_loop_demo runs 100 steps" {
+  sim_closed_loop_demo()
+}
+
+///|
+/// VLA 仿真执行 Demo 应完整执行多步推理无异常。
+test "integration - vla_sim_execution_demo runs successfully" {
+  vla_sim_execution_demo()
+}
+
+///|
+/// 多机型场景管理 Demo 应完整执行无异常。
+test "integration - multi_robot_scenario_demo runs successfully" {
+  multi_robot_scenario_demo()
+}
