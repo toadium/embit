@@ -2,6 +2,20 @@
 /// 机器人关节状态。
 ///
 /// 描述单个关节在某一时刻的运动学状态，是控制环路与状态估计的基本单元。
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let js = @embit-core.JointState::{
+///     name: "joint1",
+///     position: 0.5,
+///     velocity: 1.0,
+///     effort: 2.0,
+///   }
+///   inspect(js.name, content="joint1")
+///   inspect(js.position, content="0.5")
+/// }
+/// ```
 pub(all) struct JointState {
   name : String
   position : Double // 关节角度（rad）
@@ -54,6 +68,18 @@ pub extend SensorReading with @debug.Debug::{to_repr}
 ///
 /// `joint_commands` 为目标关节位置映射（关节名 → 目标角度），
 /// 控制器按 `timestamp` 顺序执行。
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let cmd = @embit-core.ActionCommand::{
+///     joint_commands: [("joint1", 0.5), ("joint2", 1.0)],
+///     timestamp: 0.1,
+///   }
+///   inspect(cmd.joint_commands.length(), content="2")
+///   inspect(cmd.timestamp, content="0.1")
+/// }
+/// ```
 pub(all) struct ActionCommand {
   joint_commands : Array[(String, Double)]
   timestamp : Double

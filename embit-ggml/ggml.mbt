@@ -21,6 +21,14 @@ pub extend Backend with @debug.Debug::{to_repr}
 ///
 /// 通过 FFI 绑定 ggml/vla.cpp，支持图像 + 语言指令 → 动作序列推理。
 /// 条件编译：EMBIT_HAS_GGML 启用真实 ggml 推理，否则占位回退（指令解析生成动作）。
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let model = @embit-ggml.VlaModel::load("test.gguf")
+///   inspect(model.is_loaded(), content="true")
+/// }
+/// ```
 pub struct VlaModel {
   ctx : GgmlContext
   model_path : String
@@ -55,6 +63,15 @@ pub extend InferConfig with @debug.Debug::{to_repr}
 
 ///|
 /// 默认推理配置：temperature=1.0, top_k=0, top_p=1.0, max_tokens=0。
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let cfg = @embit-ggml.InferConfig::default()
+///   inspect(cfg.temperature, content="1")
+///   inspect(cfg.max_tokens, content="0")
+/// }
+/// ```
 pub fn InferConfig::default() -> InferConfig {
   { temperature: 1.0, top_k: 0, top_p: 1.0, max_tokens: 0 }
 }

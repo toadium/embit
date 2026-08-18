@@ -4,11 +4,13 @@
 /// 用于关节级闭环控制，将目标位置与实际位置的误差映射为控制力矩。
 /// 支持输出限幅与积分抗饱和（clamping）。
 ///
-/// # 示例
-/// ```moonbit nocheck
-/// let pid = PIDController::new(1.0, 0.1, 0.01)
-/// pid.set_output_limits(-5.0, 5.0)
-/// let output = pid.update(0.0, 0.1, 0.01) // setpoint=0, measurement=0.1, dt=0.01
+/// # Example
+/// ```mbt check
+/// test {
+///   let pid = @embit-control.PIDController::new(1.0, 0.0, 0.0)
+///   let output = pid.update(0.0, 0.1, 0.01)
+///   inspect(output, content="-0.1")
+/// }
 /// ```
 pub struct PIDController {
   kp : Double // 比例增益

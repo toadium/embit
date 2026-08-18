@@ -4,6 +4,15 @@
 /// 基于 `RobotModel` 描述的关节约束与安全限幅，
 /// 生成可行轨迹并通过 `Robot` trait 下发执行。
 /// 可选绑定 `GazeboClient` 实现仿真模式控制。
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let model = @core.RobotBuilder::arm_6dof()
+///   let ctrl = @embit-control.MotionController::new(model)
+///   inspect(ctrl.is_sim_attached(), content="false")
+/// }
+/// ```
 pub struct MotionController {
   model : @core.RobotModel
   estimator : StateEstimator

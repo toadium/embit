@@ -4,6 +4,14 @@
 /// 通过 FFI 绑定 Ignition Transport C API，提供话题发布/订阅与服务调用。
 /// 条件编译：EMBIT_HAS_IGNITION 启用真实 API，否则占位回退（仅记录计数）。
 /// MoonBit 侧跟踪最近发布的消息与服务调用，用于集成测试验证。
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let client = @embit-gazebo.GazeboClient::connect("localhost:9000")
+///   inspect(client.is_connected(), content="true")
+/// }
+/// ```
 pub struct GazeboClient {
   node : IgnitionNode
   mut last_publish_topic : String // 最近发布的话题名

@@ -129,6 +129,14 @@ fn widget_type_to_int(t : WidgetType) -> Int {
 ///
 /// 通过 FFI 绑定 Selene 可视化引擎，提供 GUI 渲染、数据录制与回放。
 /// 条件编译：EMBIT_HAS_SELENE 启用真实 Selene 引擎，否则占位回退（仅记录计数）。
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let panel = @embit-view.ViewPanel::new()
+///   inspect(panel.widget_count(), content="0")
+/// }
+/// ```
 pub struct ViewPanel {
   model_info : @core.RobotModelInfo
   widgets : Array[Widget]

@@ -14,6 +14,16 @@ pub struct RobotBuilder {
 /// 关节：left/right_hip_yaw, hip_roll, hip_pitch, knee, ankle_pitch, ankle_roll
 /// 传感器：头部相机 + 躯干 IMU
 /// 安全限幅：2.0 rad/s, 50 Nm, 0.05m
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let model = @embit-core.RobotBuilder::humanoid_12dof()
+///   inspect(model.joints.length(), content="12")
+///   inspect(model.sensors.length(), content="2")
+///   inspect(model.limits.max_joint_velocity, content="2")
+/// }
+/// ```
 pub fn RobotBuilder::humanoid_12dof() -> RobotModel {
   let _builder = RobotBuilder::{ _sealed: () }
   let joints : Array[JointSpec] = [
@@ -188,6 +198,15 @@ pub fn RobotBuilder::quadruped_12dof() -> RobotModel {
 /// 关节：joint1~joint6（均为 Revolute）
 /// 传感器：腕部相机
 /// 安全限幅：1.5 rad/s, 20 Nm, 0.02m
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let model = @embit-core.RobotBuilder::arm_6dof()
+///   inspect(model.joints.length(), content="6")
+///   inspect(model.urdf_path, content="models/arm_6dof.urdf")
+/// }
+/// ```
 pub fn RobotBuilder::arm_6dof() -> RobotModel {
   let joints : Array[JointSpec] = []
   for i in 1..<=6 {
@@ -305,6 +324,16 @@ pub fn RobotBuilder::mobile_base() -> RobotModel {
 /// 从 RobotModel 创建 RobotModelInfo。
 ///
 /// `name` 为机型名称，`version` 为版本号。
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let model = @embit-core.RobotBuilder::arm_6dof()
+///   let info = model.to_info("arm6", "1.0")
+///   inspect(info.name, content="arm6")
+///   inspect(info.dof, content="6")
+/// }
+/// ```
 pub fn RobotModel::to_info(
   self : RobotModel,
   name : String,

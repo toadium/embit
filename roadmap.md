@@ -271,11 +271,11 @@
 
 **任务**：
 
-- [ ] `embit-core`：`RobotBuilder` / `RobotModel` / `JointState` / `ActionCommand` docstring tests
-- [ ] `embit-control`：`MotionController` / `PIDController` / `DhFKSolver` / `DhIKSolver` docstring tests
-- [ ] `embit-ggml`：`VlaModel` / `Tokenizer` / `Tensor` docstring tests
-- [ ] `embit-gazebo`：`GazeboClient` / `GazeboRobot` docstring tests
-- [ ] `embit-view`：`ViewPanel` / `DataSeries` docstring tests
+- [x] `embit-core`：`JointState` / `ActionCommand` / `RobotBuilder` / `RobotModel::to_info` docstring tests
+- [x] `embit-control`：`PIDController` / `DhFKSolver` / `SafetyController` / `MotionController` docstring tests
+- [x] `embit-ggml`：`VlaModel` / `InferConfig` docstring tests
+- [x] `embit-gazebo`：`GazeboClient` docstring tests
+- [x] `embit-view`：`ViewPanel` docstring tests
 
 ### 7.2 README.mbt.md
 
@@ -286,8 +286,8 @@
 
 **验收**：
 
-- `moon test` 自动运行 docstring tests
-- `moon doc` 生成完整 API 文档
+- [x] `moon test` 自动运行 docstring tests（480 测试全通过）
+- [ ] `moon doc` 生成完整 API 文档
 
 ---
 

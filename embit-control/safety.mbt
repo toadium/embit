@@ -12,6 +12,21 @@
 /// 持有安全约束参数、关节限位表与紧急停止状态。
 /// `check_all` 方法对动作指令序列进行综合安全检查；
 /// `emergency_stop` / `reset_emergency_stop` 管理紧急停止协议。
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let limits = @core.SafetyLimits::{
+///     max_joint_velocity: 2.0,
+///     max_joint_effort: 50.0,
+///     collision_check_distance: 0.05,
+///   }
+///   let ctrl = @embit-control.SafetyController::new(limits, [(-1.57, 1.57)])
+///   inspect(ctrl.is_emergency_stopped(), content="false")
+///   ctrl.emergency_stop()
+///   inspect(ctrl.is_emergency_stopped(), content="true")
+/// }
+/// ```
 pub struct SafetyController {
   limits : @core.SafetyLimits
   joint_limits : Array[(Double, Double)] // (min, max) per joint

@@ -80,6 +80,18 @@ fn dh_transform_joint(param : DHParam, joint_value : Double) -> @core.Transform 
 ///
 /// 使用标准 Denavit-Hartenberg 约定计算末端位姿。
 /// 支持任意自由度的串联机器人。
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let params = [@embit-control.DHParam::revolute("j1", 0.0, 0.0, 1.0, 0.0)]
+///   let solver = @embit-control.DhFKSolver::new(params, "ee")
+///   let tf = solver.fk([0.0])
+///   let (x, _, z) = tf.translation
+///   inspect(x, content="0")
+///   inspect(z, content="1")
+/// }
+/// ```
 pub struct DhFKSolver {
   params : Array[DHParam]
   ee_name : String
