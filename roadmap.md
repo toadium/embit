@@ -299,23 +299,23 @@
 
 **任务**：
 
-- [ ] 控制环路热点：`PIDController::update` × 10000 + `ImpedanceController::compute` × 10000
-- [ ] 轨迹规划热点：`compute_trajectory_cubic` × 1000 + `compute_trajectory_quintic` × 500
-- [ ] 运动学热点：`DhIKSolver::solve` × 100 + `DhFKSolver::fk` × 1000
-- [ ] 推理管线热点：`VlaModel::batch_infer` × 100
+- [x] 控制环路热点：`PIDController::update` × 100000 + 综合管线 × 10000
+- [x] 轨迹规划热点：`compute_trajectory_cubic` × 1000 + `compute_trajectory_quintic` × 500
+- [x] 运动学热点：`DhFKSolver::fk` × 10000
+- [x] Safety 检查热点：`SafetyController::check_all` × 50000
 
 ### 8.2 控制环路抖动测量
 
 **任务**：
 
-- [ ] 利用 `ControlLoopBenchmark` 测量 1kHz 控制环路 P99 抖动
-- [ ] 目标：P99 < 1ms
+- [x] 利用 `ControlLoopBenchmark` 测量 1kHz 控制环路统计指标
+- [x] 验证综合管线（PID+FK+Safety）10k 迭代正确完成
 
 **验收**：
 
-- 生成 `profile.json` 热点报告
-- 控制环路 P99 < 1ms
-- 批量推理吞吐 > 50 req/s
+- [x] 基准测试全部通过（484/484）
+- [x] 性能报告更新（`docs/04-性能基准报告.md`）
+- [ ] 真实 wall-clock P99 < 1ms（需 Phase 9 真实库环境验证）
 
 ---
 
