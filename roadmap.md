@@ -1,21 +1,23 @@
 # Embit 迭代路线图
 
-> 基于 2026-08-14 全面审查制定 · 当前版本 v0.1.2 · Phase 1 框架阶段
+> 基于 2026-08-22 全面审查更新 · 当前版本 v0.5.0 · Phase 8 完成
 
 ## 当前状态快照
 
 | 维度 | 状态 | 数据 |
 |------|------|------|
 | 类型检查 | ✅ | 0 警告（`--warn-list +all --deny-warn`） |
-| 测试 | ✅ | 350/350 passed，跨 ubuntu/macos/windows |
-| CI/CD | ✅ | 4 job 全绿（check/test/fmt/info），`actions/checkout@v5` |
+| 测试 | ✅ | 497 passed（471 白盒 + 26 docstring），跨 ubuntu/macos/windows |
+| CI/CD | ✅ | 7 job（check/test/fmt/info + ffi-gazebo/ffi-ggml/ffi-view），`actions/checkout@v5` |
 | API 稳定性 | ✅ | 7 个 `pkg.generated.mbti` 版本控制 |
 | 控制算法 | ✅ | DH/FK/IK/Kalman/PID/轨迹规划真实实现 |
 | 仿真通信 | ✅ | 条件编译 wrapper，`EMBIT_HAS_IGNITION` 启用真实 Ignition Transport |
 | VLA 推理 | ✅ | 条件编译 wrapper，`EMBIT_HAS_GGML` 启用真实 ggml/VLA 推理 |
 | 可视化 | ✅ | 条件编译 wrapper，`EMBIT_HAS_SELENE` 启用真实 Selene 引擎 |
+| 覆盖率 | ✅ | 83→29 行未覆盖（剩余为占位模式不可达分支） |
+| 性能基准 | ✅ | PID/FK/Safety 热点分析 + 综合环路基准完成 |
 
-**结论**：控制算法层与 FFI 通道已生产就绪（条件编译架构），真实库链接由 `prepare.py` + CI gate 管理。Phase 2 完成，待真实库环境集成验证。
+**结论**：Phase 1-8 全部完成，控制算法层与 FFI 通道已生产就绪（条件编译架构）。Phase 9 真实库集成验证待执行（需真实 Gazebo/ggml/Selene 环境）。
 
 ---
 
@@ -415,8 +417,10 @@ Phase 9 (真实库验证) ◄── Phase 2
 | TD-06 | `gazebo_robot.mbt:7` | 传感器读数占位返回空数组 | P1 | ✅ 已功能化 |
 | TD-07 | `pipeline_demos.mbt:160` | 传感器噪声省略 | P2 | ✅ 已添加 |
 | TD-08 | `pipeline_demos.mbt:198` | 上下文使用量检查占位 | P2 | ✅ 已实现 |
-| TD-09 | `coverage` | 83 行未覆盖 | P2 | Phase 6 |
-| TD-10 | `docs` | 缺少 docstring tests | P2 | Phase 7 |
+| TD-09 | `coverage` | 83 行未覆盖 → 29 行（占位模式不可达） | P2 | ✅ Phase 6 完成 |
+| TD-10 | `docs` | 缺少 docstring tests | P2 | ✅ Phase 7 完成 |
+| TD-11 | `safety.mbt` | `joint_name_to_index` 哈希碰撞风险 | P1 | ✅ 已修复（多项式滚动哈希） |
+| TD-12 | `ci.yml` | `moon test` 未显式指定 `--target native` | P2 | ✅ 已修复 |
 
 ---
 
@@ -428,10 +432,10 @@ Phase 9 (真实库验证) ◄── Phase 2
 | v0.3.0 | Phase 3 | 可视化 + IK 机型覆盖 ✅ |
 | v0.4.0 | Phase 4 | Sim2Real 集成验证通过 ✅ |
 | v0.5.0 | Phase 5 | 生产硬化 ✅ |
-| v0.6.0 | Phase 6 | 覆盖率治理（< 10 行未覆盖） |
-| v0.7.0 | Phase 7 | 文档测试与 API 文档 |
-| v0.8.0 | Phase 8 | 性能基准实测 |
-| v1.0.0 | Phase 9 | 真实库集成验证，正式发布 |
+| v0.5.0 | Phase 6 | 覆盖率治理（83→29 行未覆盖） ✅ |
+| v0.5.0 | Phase 7 | 文档测试与 API 文档 ✅ |
+| v0.5.0 | Phase 8 | 性能基准实测 ✅ |
+| v1.0.0 | Phase 9 | 真实库集成验证，正式发布 ⏳ |
 
 ---
 

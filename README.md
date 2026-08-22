@@ -4,8 +4,8 @@
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 [![MoonBit](https://img.shields.io/badge/MoonBit-%3E%3D0.1.20260807-blue)](https://www.moonbitlang.com/)
-[![Tests](https://img.shields.io/badge/tests-420%20passed-brightgreen)]()
-[![Phase](https://img.shields.io/badge/Phase-5%20complete-success)](roadmap.md)
+[![Tests](https://img.shields.io/badge/tests-497%20passed-brightgreen)]()
+[![Phase](https://img.shields.io/badge/Phase-8%20complete-success)](roadmap.md)
 
 ## 项目简介
 
@@ -22,6 +22,10 @@ Embit 是基于 MoonBit 的通用具身智能机器人全栈开发框架，打�
 | Phase 3 | 可视化引擎接入（Selene FFI）+ IK 机型覆盖 | ✅ 完成 |
 | Phase 4 | Sim2Real 集成验证（仿真闭环 + 真机联调） | ✅ 完成 |
 | Phase 5 | 生产硬化（性能调优 + 监控告警 + 安全认证） | ✅ 完成 |
+| Phase 6 | 覆盖率治理（83→29 行未覆盖，+47 白盒测试） | ✅ 完成 |
+| Phase 7 | 文档测试与 API 文档（docstring tests） | ✅ 完成 |
+| Phase 8 | 性能基准实测（PID/FK/Safety 热点 + 环路基准） | ✅ 完成 |
+| Phase 9 | 真实库集成验证（Gazebo + ggml + Selene） | ⏳ 待验证 |
 
 详见 [roadmap.md](roadmap.md)。
 

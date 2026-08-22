@@ -236,10 +236,11 @@ pub fn SafetyController::check_effort_limits(
 }
 
 ///|
-/// 碰撞检测（占位实现）。
+/// 碰撞检测（参数校验 + 委托 CollisionDetector）。
 ///
-/// 检查 `collision_check_distance` 是否为正值。
-/// 真实实现需接入碰撞检测库（如 FCL），此处仅验证参数有效性。
+/// 验证 `collision_check_distance` 为正值，并在已配置碰撞检测器时
+/// 委托执行环境碰撞检查。真实碰撞检测需接入碰撞检测库（如 FCL），
+/// 此处先校验参数有效性，再委托 `CollisionDetector` 做障碍物级检查。
 pub fn SafetyController::check_collision(
   self : SafetyController,
   _commands : Array[@core.ActionCommand],
@@ -272,10 +273,22 @@ pub fn SafetyController::check_all(
 }
 
 ///|
-/// 关节名转索引（简化哈希）。
+/// 关节名转索引（多项式滚动哈希）。
+///
+/// 使用 31 作为乘子对关节名做多项式滚动哈希，再对关节数取模。
+/// 相比 `name.length() % count`，大幅降低不同关节名映射到同一索引的碰撞概率。
 fn joint_name_to_index(name : String, count : Int) -> Int {
   if count == 0 {
     return -1
   }
-  name.length() % count
+  let mut hash : Int = 0
+  for i in 0..<name.length() {
+    let ch = name[i].to_int()
+    hash = hash * 31 + ch
+  }
+  // 保证非负后取模
+  if hash < 0 {
+    hash = -hash
+  }
+  hash % count
 }

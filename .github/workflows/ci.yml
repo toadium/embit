@@ -59,7 +59,7 @@ jobs:
           .\install.ps1
           Add-Content -Path $env:GITHUB_PATH -Value "$env:USERPROFILE\.moon\bin"
       - name: Test
-        run: moon test
+        run: moon test --target native
 
   fmt:
     name: moon fmt --check

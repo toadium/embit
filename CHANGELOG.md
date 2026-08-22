@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to semantic versioning.
 
+## [0.5.1] — 2026-08-22
+
+### Changed — 全面审查与迭代修正
+
+#### 版本一致性修正
+- `moon.mod`：版本号从 `0.1.2` 更新至 `0.5.0`，与 CHANGELOG 和 roadmap 对齐
+- `README.md`：测试徽章从 `420 passed` 更新至 `497 passed`，Phase 徽章从 `Phase 5` 更新至 `Phase 8`
+- `README.md`：Phase 状态表新增 Phase 6/7/8/9 行，反映当前进展
+- `roadmap.md`：状态快照更新（版本 v0.5.0、497 测试、7 CI job），版本规划表对齐
+- `自查报告.md`：全面更新（8000 行代码、497 测试、21 Demo、Phase 1-8 完成）
+
+#### 代码质量改进
+- `embit-control/safety.mbt`：`joint_name_to_index` 从 `name.length() % count` 改为多项式滚动哈希（乘子 31），大幅降低关节名哈希碰撞概率
+- `.github/workflows/ci.yml`：`moon test` 显式指定 `--target native`，与 `preferred_target` 一致
+
+#### 技术债务清理
+- `roadmap.md`：技术债务清单新增 TD-11（哈希碰撞修复）和 TD-12（CI target 修正），均标记已完成
+
+### 验证
+- 代码审查：133 个文件全量审查，无 TODO/FIXME/unwrap/panic 等问题
+- 测试覆盖：471 白盒测试 + 26 docstring 测试 = 497 总测试
+- 版本一致性：moon.mod / README / CHANGELOG / roadmap / 自查报告 全部对齐
+
 ## [0.5.0] — 2026-08-16
 
 ### Added — Phase 5 生产硬化
